@@ -5,7 +5,6 @@ import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { languageServer } from './codemirror-languageserver';
 
-// Configure the language server plugin
 const tsLspClient = languageServer({
     serverUri: 'ws://localhost:3000/typescript',
     workspaceFolders: [],
@@ -18,7 +17,7 @@ const tsLspClient = languageServer({
     rootUri:
       '/Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-project',
     documentUri:
-      '/Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-project/jslang.ts',
+      '/Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-project/redux.ts',
     languageId: 'typescript',
 
     keyboardShortcuts: {
@@ -73,7 +72,6 @@ let hello12 = "World";
       //   documentUri: 'file:///example.ts',
       //   languageId: 'typescript',
       //   onGoToDefinition: (result) => {
-      //     // biome-ignore lint/suspicious/noConsoleLog: <explanation>
       //     console.log('Go to definition', result);
       //   },
       // }),
