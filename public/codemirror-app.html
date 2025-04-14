@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- <link rel="icon" href="%PUBLIC_URL%/favicon.ico" /> -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Ctext%20x='0'%20y='14'%3E🤗%3C/text%3E%3C/svg%3E"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="react starter" />
+    <title>CodeMirror LSP Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      #editor {
+        height: 400px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+      .cm-rename-popup {
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      }
+      .cm-rename-popup input {
+        font-size: 14px;
+        font-family: inherit;
+      }
+      .cm-error-message {
+        font-family: inherit;
+      }
+      .demo-controls {
+        margin-bottom: 20px;
+      }
+      .demo-controls button {
+        margin-right: 8px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        background: #4a90e2;
+        color: white;
+        cursor: pointer;
+      }
+      .demo-controls button:hover {
+        background: #357abd;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <h1>CodeMirror LSP Demo</h1>
+    <!-- <div class="demo-controls">
+      <button id="addError">Add Error</button>
+      <button id="addWarning">Add Warning</button>
+      <button id="clearDiagnostics">Clear Diagnostics</button>
+    </div> -->
+    <div id="editor"></div>
+    <div>
+      <h3>Keyboard Shortcuts:</h3>
+      <ul>
+        <li><strong>F2</strong>: Rename symbol</li>
+        <li><strong>Ctrl/Cmd + Click</strong>: Go to definition</li>
+        <li><strong>Ctrl/Cmd + Space</strong>: Trigger completion</li>
+      </ul>
+    </div>
+  </body>
+</html>

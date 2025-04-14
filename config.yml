@@ -1,0 +1,5 @@
+langservers:
+  typescript:
+    - npx
+    - 'typescript-language-server'
+    - '--stdio'
