@@ -1,7 +1,7 @@
 {
   "name": "codemirror6-lsp-typescript-language-server",
   "version": "0.0.1",
-  "description": "quickstart boilerplate for react using typescript/rspack.",
+  "description": "implement codemirror 6 autocomplete/hover/go-to-definition with LSP.",
   "keywords": [
     "codemirror",
     "LSP",

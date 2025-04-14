@@ -32,4 +32,3 @@ const createStore = (createState) =>
 export { createStore };
 
 let stores = createStore();
-

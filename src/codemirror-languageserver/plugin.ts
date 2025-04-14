@@ -40,7 +40,7 @@ import {
 import { convertCompletionItem, sortCompletionItems } from './completion';
 
 const TIMEOUT = 10000,
-logger = console.log;
+  logger = console.log;
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 
@@ -1624,6 +1624,7 @@ export function languageServerWithClient(options: LanguageServerOptions) {
             x: event.clientX,
             y: event.clientY,
           });
+          // console.log(';; onGoToDef ', pos, event);
           if (pos && plugin) {
             plugin
               .requestDefinition(view, offsetToPos(view.state.doc, pos))
