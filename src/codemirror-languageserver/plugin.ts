@@ -1,5 +1,11 @@
+import type {
+  CompletionContext,
+  CompletionResult,
+} from '@codemirror/autocomplete';
 import { autocompletion } from '@codemirror/autocomplete';
 import { type Action, type Diagnostic, setDiagnostics } from '@codemirror/lint';
+import type { Extension } from '@codemirror/state';
+import type { PluginValue, ViewUpdate } from '@codemirror/view';
 import {
   EditorView,
   type Tooltip,
@@ -12,20 +18,15 @@ import {
   RequestManager,
   WebSocketTransport,
 } from '@open-rpc/client-js';
+import type { Transport } from '@open-rpc/client-js/build/transports/Transport.js';
+import type * as LSP from 'vscode-languageserver-protocol';
+import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol';
 import {
   CompletionTriggerKind,
   DiagnosticSeverity,
 } from 'vscode-languageserver-protocol';
 
-import type {
-  CompletionContext,
-  CompletionResult,
-} from '@codemirror/autocomplete';
-import type { Extension } from '@codemirror/state';
-import type { PluginValue, ViewUpdate } from '@codemirror/view';
-import type { Transport } from '@open-rpc/client-js/build/transports/Transport.js';
-import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol';
-import type * as LSP from 'vscode-languageserver-protocol';
+import { convertCompletionItem, sortCompletionItems } from './completion';
 import { documentUri, languageId } from './config';
 import {
   eventsFromChangeSet,
@@ -37,7 +38,6 @@ import {
   prefixMatch,
   showErrorMessage,
 } from './utils';
-import { convertCompletionItem, sortCompletionItems } from './completion';
 
 const TIMEOUT = 10000,
   logger = console.log;

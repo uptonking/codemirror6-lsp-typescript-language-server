@@ -52,4 +52,8 @@ let stores = new Store(
   },
 );
 
-stores;
+stores.value;
+
+let storesMock = { value: 11, tag: 'test' };
+
+export { stores, storesMock };

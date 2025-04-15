@@ -1,0 +1,19 @@
+{
+  "name": "example-project-cm-lsp",
+  "version": "0.0.1",
+  "description": "example-project for codemirror 6 with LSP.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "npm run dev",
+    "test": "cross-env REACT_APP_ENV=react jest --config ./jest.config.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12"
+  }
+}

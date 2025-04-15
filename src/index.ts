@@ -3,10 +3,14 @@ import { lintGutter } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
-import { languageServer } from './codemirror-languageserver';
 
+import { languageServer } from './codemirror-languageserver';
+// import { languageServer } from './codemirror-languageserver-toph';
+
+/** absolute path to example-project folder */
 const exampleProjectRootPath =
-  '/home/yaoo/Documents/repos/resources/codemirror6-lsp-typescript-language-server/example-project';
+  // '/home/yaoo/Documents/repos/resources/codemirror6-lsp-typescript-language-server/example-project';
+  '/Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-project';
 
 const tsLspClient = languageServer({
   serverUri: 'ws://localhost:3000/typescript',
@@ -21,6 +25,7 @@ const tsLspClient = languageServer({
   documentUri: exampleProjectRootPath + '/jslang.ts',
   languageId: 'typescript',
 
+  // @ts-ignore to-implement and improve
   onGoToDefinition: (result) => {
     console.log(';; onGoToDef ', result);
   },
@@ -34,27 +39,44 @@ const tsLspClient = languageServer({
 });
 
 // Set up the editor
-const doc = `// CodeMirror LSP Demo
-// Try these features:
+const doc = `import * as React from 'react';
+import { format } from 'date-fns';
+import { addYears, formatWithOptions } from 'date-fns/fp';
+import * as locales from 'date-fns/locale';
+
+import { stores, storesMock } from './redux';
+
+// CodeMirror LSP Demo
 // 1. Hover over text
 // 2. Press F2 to rename
 // 3. Ctrl/Cmd+Click for definition
-// 4. Type 'console.' for completion
+
+React;
+const stateLsp = React.useState(112233);
+
+format(new Date(2014, 1, 11), 'yyyy-MM-dd');
+
+locales.zhCN.code;
+
+locales.zhCN;
+
+const addFiveYears = addYears(5);
 
 let aabbC = { showMenu: 'fileTree' };
 
 function example() {
   aabbC.showMenu = 'aiChat';
 
-  console.log("Hello, World!");
-
+  console.log('Hello, World!');
 }
 
 example();
 
-let hello11 = "Hello";
-let hello12 = "World";
+console.log(';; stores ', stores.value);
+console.log(';; storesMock ', storesMock.value);
 
+let hello11 = 'Hello';
+let hello12 = 'World';
 
 `;
 

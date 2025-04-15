@@ -25,22 +25,26 @@ import type {
 } from '@codemirror/autocomplete';
 import type { Text } from '@codemirror/state';
 import type { PluginValue, ViewUpdate } from '@codemirror/view';
-import { Transport } from '@open-rpc/client-js/build/transports/Transport';
-import { marked } from 'marked/lib/marked.esm.js';
-import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol';
+import type { Transport } from '@open-rpc/client-js/build/transports/Transport';
+import { marked } from 'marked';
 import type * as LSP from 'vscode-languageserver-protocol';
+import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol';
 
-const timeout = 10000,
-  changesDelay = 500,
-  CompletionItemKindMap = Object.fromEntries(
-    Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
-  ) as Record<CompletionItemKind, string>,
-  useLast = (values: readonly any[]) => values.reduce((_, v) => v, ''),
-  client = Facet.define<LanguageServerClient, LanguageServerClient>({
-    combine: useLast,
-  }),
-  documentUri = Facet.define<string, string>({ combine: useLast }),
-  languageId = Facet.define<string, string>({ combine: useLast });
+const timeout = 10000;
+const changesDelay = 500;
+
+const CompletionItemKindMap = Object.fromEntries(
+  Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
+) as Record<CompletionItemKind, string>;
+
+const useLast = (values: readonly any[]) => values.reduce((_, v) => v, '');
+
+const client = Facet.define<LanguageServerClient, LanguageServerClient>({
+  combine: useLast,
+});
+
+const documentUri = Facet.define<string, string>({ combine: useLast });
+const languageId = Facet.define<string, string>({ combine: useLast });
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 
@@ -91,8 +95,8 @@ export class LanguageServerClient {
   private plugins: LanguageServerPlugin[];
 
   constructor(options: LanguageServerClientOptions) {
-    this.rootUri = options.rootUri;
-    this.workspaceFolders = options.workspaceFolders;
+    this.rootUri = options.rootUri || 'file:///';
+    this.workspaceFolders = options.workspaceFolders || [];
     this.autoClose = options.autoClose;
     this.plugins = [];
     this.transport = options.transport;
@@ -109,7 +113,7 @@ export class LanguageServerClient {
       // XXX(hjr265): Need a better way to do this. Relevant issue:
       // https://github.com/FurqanSoftware/codemirror-languageserver/issues/9
       webSocketTransport.connection.addEventListener('message', (message) => {
-        const data = JSON.parse(message.data);
+        const data = JSON.parse((message as { data: string }).data);
         if (data.method && data.id) {
           webSocketTransport.connection.send(
             JSON.stringify({
@@ -351,11 +355,11 @@ class LanguageServerPlugin implements PluginValue {
       return null;
     }
     const { contents, range } = result;
-    let pos = posToOffset(view.state.doc, { line, character })!,
-      end: number;
+    let pos = posToOffset(view.state.doc, { line, character })!;
+    let end: number | undefined;
     if (range) {
       pos = posToOffset(view.state.doc, range.start)!;
-      end = posToOffset(view.state.doc, range.end);
+      end = posToOffset(view.state.doc, range.end)!;
     }
     if (pos === null) {
       return null;
@@ -363,9 +367,9 @@ class LanguageServerPlugin implements PluginValue {
     const dom = document.createElement('div');
     dom.classList.add('documentation');
     if (this.allowHTMLContent) {
-      dom.innerHTML = formatContents(contents);
+      dom.innerHTML = formatContents(contents) || '';
     } else {
-      dom.textContent = formatContents(contents);
+      dom.textContent = formatContents(contents) || '';
     }
     return {
       pos,
@@ -408,8 +412,8 @@ class LanguageServerPlugin implements PluginValue {
 
     let items = 'items' in result ? result.items : result;
 
-    const [span, match] = prefixMatch(items),
-      token = context.matchBefore(match);
+    const [span, match] = prefixMatch(items);
+    const token = context.matchBefore(match);
     let { pos } = context;
 
     if (token) {
@@ -422,8 +426,8 @@ class LanguageServerPlugin implements PluginValue {
             return text.toLowerCase().startsWith(word);
           })
           .sort((a, b) => {
-            const aText = a.sortText ?? a.label,
-              bText = b.sortText ?? b.label;
+            const aText = a.sortText ?? a.label;
+            const bText = b.sortText ?? b.label;
             switch (true) {
               case aText.startsWith(token.text) &&
                 !bText.startsWith(token.text):
@@ -460,8 +464,8 @@ class LanguageServerPlugin implements PluginValue {
                 insertCompletionText(
                   view.state,
                   textEdit.newText,
-                  posToOffset(view.state.doc, textEdit.range.start),
-                  posToOffset(view.state.doc, textEdit.range.end),
+                  posToOffset(view.state.doc, textEdit.range.start)!,
+                  posToOffset(view.state.doc, textEdit.range.end)!,
                 ),
               );
             } else {
@@ -473,13 +477,13 @@ class LanguageServerPlugin implements PluginValue {
             additionalTextEdits
               .sort(({ range: { end: a } }, { range: { end: b } }) => {
                 if (
-                  posToOffset(view.state.doc, a) <
-                  posToOffset(view.state.doc, b)
+                  posToOffset(view.state.doc, a)! <
+                  posToOffset(view.state.doc, b)!
                 ) {
                   return 1;
                 } else if (
-                  posToOffset(view.state.doc, a) >
-                  posToOffset(view.state.doc, b)
+                  posToOffset(view.state.doc, a)! >
+                  posToOffset(view.state.doc, b)!
                 ) {
                   return -1;
                 }
@@ -489,8 +493,8 @@ class LanguageServerPlugin implements PluginValue {
                 view.dispatch(
                   view.state.update({
                     changes: {
-                      from: posToOffset(view.state.doc, textEdit.range.start),
-                      to: posToOffset(view.state.doc, textEdit.range.end),
+                      from: posToOffset(view.state.doc, textEdit.range.start)!,
+                      to: posToOffset(view.state.doc, textEdit.range.end)!,
                       insert: textEdit.newText,
                     },
                   }),
@@ -586,8 +590,10 @@ interface LanguageServerWebsocketOptions extends LanguageServerBaseOptions {
 }
 
 export function languageServer(options: LanguageServerWebsocketOptions) {
-  const serverUri = options.serverUri;
-  delete options.serverUri;
+  // const serverUri = options.serverUri;
+  // delete options.serverUri;
+  const { serverUri, ...restOptions } = options;
+  options = restOptions as LanguageServerWebsocketOptions;
   return languageServerWithTransport({
     ...options,
     transport: new WebSocketTransport(serverUri),
@@ -606,7 +612,10 @@ export function languageServerWithTransport(options: LanguageServerOptions) {
     languageId.of(options.languageId),
     ViewPlugin.define(
       (view) =>
-        (plugin = new LanguageServerPlugin(view, options.allowHTMLContent)),
+        (plugin = new LanguageServerPlugin(
+          view,
+          Boolean(options.allowHTMLContent),
+        )),
     ),
     hoverTooltip(
       (view, pos) =>
@@ -620,10 +629,10 @@ export function languageServerWithTransport(options: LanguageServerOptions) {
             return null;
           }
 
-          const { state, pos, explicit } = context,
-            line = state.doc.lineAt(pos);
-          let trigKind: CompletionTriggerKind = CompletionTriggerKind.Invoked,
-            trigChar: string | undefined;
+          const { state, pos, explicit } = context;
+          const line = state.doc.lineAt(pos);
+          let trigKind: CompletionTriggerKind = CompletionTriggerKind.Invoked;
+          let trigChar: string | undefined;
           if (
             !explicit &&
             plugin.client.capabilities?.completionProvider?.triggerCharacters?.includes(
@@ -674,11 +683,11 @@ function offsetToPos(doc: Text, offset: number) {
 
 function formatContents(
   contents: LSP.MarkupContent | LSP.MarkedString | LSP.MarkedString[],
-): string {
+): string | undefined {
   if (isLSPMarkupContent(contents)) {
     let value = contents.value;
     if (contents.kind === 'markdown') {
-      value = marked.parse(value);
+      value = marked.parse(value) as string;
     }
     return value;
   } else if (Array.isArray(contents)) {
@@ -689,8 +698,8 @@ function formatContents(
 }
 
 function toSet(chars: Set<string>) {
-  let preamble = '',
-    flat = Array.from(chars).join('');
+  let preamble = '';
+  let flat = Array.from(chars).join('');
   const words = /\w/.test(flat);
   if (words) {
     preamble += '\\w';
@@ -700,8 +709,8 @@ function toSet(chars: Set<string>) {
 }
 
 function prefixMatch(items: LSP.CompletionItem[]) {
-  const first = new Set<string>(),
-    rest = new Set<string>();
+  const first = new Set<string>();
+  const rest = new Set<string>();
 
   for (const item of items) {
     const [initial, ...restStr] = item.textEdit?.newText || item.label;
