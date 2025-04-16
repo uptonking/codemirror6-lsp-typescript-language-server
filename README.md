@@ -1,4 +1,4 @@
-# codemirror6-lsp-typescript-language-server
+-# codemirror6-lsp-typescript-language-server
 
 > implement codemirror 6 autocomplete/hover/go-to-definition with LSP
 
@@ -20,5 +20,14 @@ npm run start
 
 ## acknowledgements
 
-- https://github.com/marimo-team/codemirror-languageserver
-- https://github.com/FurqanSoftware/codemirror-languageserver
+- codemirror-language-server-client
+  - https://github.com/marimo-team/codemirror-languageserver
+  - https://github.com/FurqanSoftware/codemirror-languageserver
+
+- language-server
+  - https://github.com/typescript-language-server/typescript-language-server
+  - https://github.com/palantir/python-language-server /jedi
+  - https://github.com/mtshiba/pylyzer
+  - https://github.com/rust-lang/rust-analyzer
+  - https://github.com/eclipse-jdtls/eclipse.jdt.ls /java
+  - https://github.com/golang/tools/tree/master/gopls
