@@ -11,7 +11,9 @@ const demoConfig = merge(
 
   {
     entry: {
-      main: './src/index.ts',
+      // main: './src/index.ts',
+      // main: './src/app-ts.ts',
+      main: './src/app-django-drf.ts',
     },
     output: {
       filename: 'main.js',

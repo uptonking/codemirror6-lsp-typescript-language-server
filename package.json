@@ -20,11 +20,11 @@
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rimraf build dist target",
     "demo": "cross-env REACT_APP_ENV=reacthot rspack serve -c ./webpacker/rspack.config.demo.mjs",
-    "dev": "concurrently \"npm run serve:tls\" \"npm run demo\"",
+    "dev": "concurrently \"npm run serve:langs\" \"npm run demo\"",
     "format": "prettier \"**/*.{js,jsx,ts,tsx,mjs,mts,json}\" --write",
     "lint": "eslint src --ext .ts,.tsx --fix -o eslint-log.log",
     "serve": "tsx watch ./server/app.ts",
-    "serve:tls": "jsonrpc-ws-proxy --languageServers config.yml",
+    "serve:langs": "jsonrpc-ws-proxy --languageServers config.yml",
     "start": "npm run dev",
     "test": "cross-env REACT_APP_ENV=react jest --config ./jest.config.js"
   },
@@ -55,6 +55,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript-language-server": "^4.3.4",
+    "basedpyright": "^1.28.5",
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "devDependencies": {

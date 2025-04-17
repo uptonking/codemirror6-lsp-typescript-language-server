@@ -3,3 +3,7 @@ langservers:
     - npx
     - 'typescript-language-server'
     - '--stdio'
+  python:
+    - npx
+    - 'pyright-langserver'
+    - '--stdio'

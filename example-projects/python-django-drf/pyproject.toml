@@ -1,0 +1,30 @@
+[project]
+name = "conduit-drf"
+version = "0.1.0"
+description = "Exemplary back-end Medium.com clone (called Conduit) in Python, built with Django + DRF + MySQL + MySQLClient + SimpleJWT, managed by PDM."
+authors = [{ name = "Svelte", email = "dev.yoonge@gmail.com" }]
+dependencies = [
+    "django~=4.2",
+    "djangorestframework>=3.15.1",
+    "djangorestframework-simplejwt>=5.3.1",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.pdm]
+distribution = false
+[tool.pdm.scripts]
+createsuperuser = "python manage.py createsuperuser"
+makemigrations = "python manage.py makemigrations"
+migrate = "python manage.py migrate"
+startapp = "python manage.py startapp"
+start = "python manage.py runserver"
+post_init = { composite = ["pdm install", "migrate", "start"] }
+
+[tool.basedpyright]
+disableLanguageServices = false
+disableTaggedHints = false
+autoSearchPaths = true
+useLibraryCodeForTypes = true
+

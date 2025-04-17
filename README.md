@@ -26,8 +26,7 @@ npm run start
 
 - language-server
   - https://github.com/typescript-language-server/typescript-language-server
-  - https://github.com/palantir/python-language-server /jedi
-  - https://github.com/mtshiba/pylyzer
+  - https://github.com/DetachHead/basedpyright
+  - https://github.com/golang/tools/tree/master/gopls
   - https://github.com/rust-lang/rust-analyzer
   - https://github.com/eclipse-jdtls/eclipse.jdt.ls /java
-  - https://github.com/golang/tools/tree/master/gopls
