@@ -10,6 +10,7 @@ import { languageServer } from './codemirror-languageserver';
 /** absolute path to example-project folder */
 const exampleProjectRootPath =
   // '/home/yaoo/Documents/repos/resources/codemirror6-lsp-typescript-language-server/example-project-ts';
+  // ''
   '/Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-project-ts';
 
 const tsLspClient = languageServer({

@@ -7,3 +7,5 @@ langservers:
     - npx
     - 'pyright-langserver'
     - '--stdio'
+  go:
+    - 'gopls'

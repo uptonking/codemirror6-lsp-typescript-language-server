@@ -5,54 +5,30 @@ import { merge } from 'webpack-merge';
 
 import { devServerConfig } from './rspack.server.mjs';
 
+const lspLang = ['ts', 'py', 'go'].includes(process.env['LANG'])
+  ? process.env['LANG']
+  : 'ts';
+
+const entries = {
+  ts: './src/app-ts.ts',
+  py: './src/app-python-django-drf.ts',
+  go: './src/app-go-gin.ts',
+};
+
 /** @type {import('@rspack/cli').Configuration} */
 const demoConfig = merge(
   devServerConfig,
 
   {
     entry: {
-      // main: './src/index.ts',
-      // main: './src/app-ts.ts',
-      main: './src/app-django-drf.ts',
+      main: entries[lspLang],
     },
     output: {
       filename: 'main.js',
       path: path.resolve(import.meta.dirname, '../dist'),
-      // path: path.resolve(process.cwd(), 'dist')
-      // path: path.resolve(__dirname, '../build'),
     },
     module: {
-      rules: [
-        // {
-        //   test: /\.tsx$/,
-        //   use: {
-        //     loader: 'builtin:swc-loader',
-        //     options: {
-        //       sourceMap: true,
-        //       jsc: {
-        //         parser: {
-        //           syntax: 'typescript',
-        //           jsx: true,
-        //         },
-        //         externalHelpers: true,
-        //         preserveAllComments: false,
-        //         transform: {
-        //           react: {
-        //             runtime: 'automatic',
-        //             throwIfNamespace: true,
-        //             useBuiltins: false,
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        //   type: 'javascript/auto',
-        // },
-        // {
-        //   test: /\.(jpg|jpeg|png|gif|svg|ico)$/,
-        //   type: 'asset',
-        // },
-      ],
+      rules: [],
     },
     optimization: {
       // Disabling minification because it takes too long on CI

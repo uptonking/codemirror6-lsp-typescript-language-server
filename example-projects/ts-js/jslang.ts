@@ -31,6 +31,8 @@ function example() {
 
 example();
 
+aabbC.def;
+
 console.log(';; stores ', stores.value);
 console.log(';; storesMock ', storesMock.value);
 

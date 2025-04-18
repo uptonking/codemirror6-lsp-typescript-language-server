@@ -6,6 +6,9 @@
 
 ## todo
 
+- [ ] jump to definition in editor
+- [ ] hover markdown renderer
+
 - [ ] support to import json
 
 - [ ] migrate lint to oxlint
