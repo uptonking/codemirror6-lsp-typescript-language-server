@@ -7,10 +7,10 @@ type CheckboxWithLabelProps = {
 };
 
 const CheckboxWithLabel = ({ labelOn, labelOff }: CheckboxWithLabelProps) => {
-  const [isChecked, setIsChecked] = useState(false),
-    onChange = () => {
-      setIsChecked(!isChecked);
-    };
+  const [isChecked, setIsChecked] = useState(false);
+  const onChange = () => {
+    setIsChecked(!isChecked);
+  };
 
   return (
     <label>

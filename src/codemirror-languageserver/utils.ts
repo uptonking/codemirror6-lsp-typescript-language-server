@@ -4,6 +4,16 @@ import type { EditorView } from '@codemirror/view';
 import { marked } from 'marked';
 import type * as LSP from 'vscode-languageserver-protocol';
 
+let lastHoverResult: LSP.Hover | null = null;
+
+export function setLastHoverResult(result: LSP.Hover | null) {
+  lastHoverResult = result;
+}
+
+export function getLastHoverResult() {
+  return lastHoverResult;
+}
+
 export function posToOffset(
   doc: Text,
   pos: { line: number; character: number },
@@ -77,8 +87,8 @@ function longestCommonPrefix(strs: string[]): string {
   strs.sort();
 
   // Get the first and last string after sorting
-  const firstStr = strs[0] || '',
-    lastStr = strs[strs.length - 1] || '';
+  const firstStr = strs[0] || '';
+  const lastStr = strs[strs.length - 1] || '';
 
   // Find the common prefix between the first and last string
   let i = 0;
@@ -102,8 +112,8 @@ export function prefixMatch(items: LSP.CompletionItem[]) {
     return undefined;
   }
 
-  const labels = items.map((item) => item.textEdit?.newText || item.label),
-    prefix = longestCommonPrefix(labels);
+  const labels = items.map((item) => item.textEdit?.newText || item.label);
+  const prefix = longestCommonPrefix(labels);
 
   if (prefix === '') {
     return undefined;
@@ -118,9 +128,9 @@ export function prefixMatch(items: LSP.CompletionItem[]) {
       explodedPrefixes.push(escapedSlice);
     }
   }
-  const orPattern = explodedPrefixes.join('|'),
-    // Create regex pattern that matches the common prefix for each possible prefix by dropping the last character
-    pattern = new RegExp(`(${orPattern})$`);
+  const orPattern = explodedPrefixes.join('|');
+  // Create regex pattern that matches the common prefix for each possible prefix by dropping the last character
+  const pattern = new RegExp(`(${orPattern})$`);
 
   return pattern;
 }
@@ -230,8 +240,8 @@ export function eventsFromChangeSet(
     }
 
     // An incremental change event, converting (index) to (line, col)
-    const start = offsetToPos(doc, fromA),
-      end = offsetToPos(doc, toA);
+    const start = offsetToPos(doc, fromA);
+    const end = offsetToPos(doc, toA);
     events.push({ range: { start, end }, text });
   });
 

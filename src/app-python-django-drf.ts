@@ -11,7 +11,6 @@ import { languageServer } from './codemirror-languageserver';
 const exampleProjectRootPath =
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/python-django-drf';
-
 const pythonLspClient = languageServer({
   serverUri: 'ws://localhost:3000/python',
   workspaceFolders: [],
@@ -37,7 +36,6 @@ const pythonLspClient = languageServer({
   // Optional: Allow HTML content in tooltips
   allowHTMLContent: true,
 });
-
 // Set up the editor
 const doc = `from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -162,10 +160,18 @@ class TopicDetailView(APIView):
 
 `;
 
+const maxHeightEditor = EditorView.theme({
+  '&': {
+    width: '60vw',
+    maxHeight: '40vh',
+  },
+  '.cm-scroller': { overflow: 'auto' },
+});
 const state = EditorState.create({
   doc,
   extensions: [
     basicSetup,
+    maxHeightEditor,
     python(),
     tooltips({
       position: 'absolute',
@@ -174,7 +180,6 @@ const state = EditorState.create({
     pythonLspClient,
   ],
 });
-
 const view = new EditorView({
   state,
   parent: document.querySelector('#editor') as Element,

@@ -4,7 +4,12 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 
-import { languageServer } from './codemirror-languageserver';
+import {
+  defCandidatePlugin,
+  languageServer,
+} from './codemirror-languageserver';
+import { posToOffset } from './codemirror-languageserver/utils';
+import { scrollToAndCenterAtPos } from './utils';
 // import { languageServer } from './codemirror-languageserver-toph';
 
 /** absolute path to example-project folder */
@@ -12,7 +17,7 @@ const exampleProjectRootPath =
   // '/home/yaoo/Documents/repos/resources/codemirror6-lsp-typescript-language-server/example-projects/ts-js';
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/ts-js';
-
+const exampleDocPath = 'jslang.ts';
 const tsLspClient = languageServer({
   serverUri: 'ws://localhost:3000/typescript',
   workspaceFolders: [],
@@ -23,12 +28,20 @@ const tsLspClient = languageServer({
   //     },
   //   ],
   rootUri: exampleProjectRootPath,
-  documentUri: exampleProjectRootPath + '/jslang.ts',
+  documentUri: exampleProjectRootPath + '/' + exampleDocPath,
   languageId: 'typescript',
 
   // @ts-ignore to-implement and improve
   onGoToDefinition: (result) => {
     console.log(';; onGoToDef ', result);
+    const selectionRange = result.selectionRange;
+    if (
+      result.uri === exampleProjectRootPath + '/' + exampleDocPath &&
+      selectionRange
+    ) {
+      const selOffset = posToOffset(view.state.doc, selectionRange.start);
+      scrollToAndCenterAtPos(view, selOffset);
+    }
   },
   keyboardShortcuts: {
     rename: 'F2', // Default: F2
@@ -38,7 +51,6 @@ const tsLspClient = languageServer({
   // Optional: Allow HTML content in tooltips
   allowHTMLContent: true,
 });
-
 // Set up the editor
 const doc = `import * as React from 'react';
 import { format } from 'date-fns';
@@ -73,26 +85,36 @@ function example() {
 
 example();
 
-aabbC.def;
-
 console.log(';; stores ', stores.value);
 console.log(';; storesMock ', storesMock.value);
 
 let hello11 = 'Hello';
 let hello12 = 'World';
 
+aabbC.def;
+
 `;
+
+const maxHeightEditor = EditorView.theme({
+  '&': {
+    width: '60vw',
+    maxHeight: '40vh',
+  },
+  '.cm-scroller': { overflow: 'auto' },
+});
 
 const state = EditorState.create({
   doc,
   extensions: [
     basicSetup,
+    maxHeightEditor,
     javascript(),
     tooltips({
       position: 'absolute',
     }),
     lintGutter(),
     tsLspClient,
+    defCandidatePlugin(),
     // languageServerWithClient({
     //   client: new LanguageServerClient({
     //     rootUri: 'file:///',
@@ -108,7 +130,6 @@ const state = EditorState.create({
     // }),
   ],
 });
-
 const view = new EditorView({
   state,
   parent: document.querySelector('#editor') as Element,

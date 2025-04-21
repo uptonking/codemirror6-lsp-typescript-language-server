@@ -7,7 +7,7 @@
 - autocomplete
 - hover info
 - go to definition
-- lint
+- wip: lint
 
 - 🌰 examples
   - typescript lsp with typescript-language-server

@@ -11,7 +11,6 @@ import { languageServer } from './codemirror-languageserver';
 const exampleProjectRootPath =
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/go-gin-gorm';
-
 const goLspClient = languageServer({
   serverUri: 'ws://localhost:3000/go',
   workspaceFolders: [],
@@ -37,7 +36,6 @@ const goLspClient = languageServer({
   // Optional: Allow HTML content in tooltips
   allowHTMLContent: true,
 });
-
 // Set up the editor
 const doc = `package main
 
@@ -77,10 +75,19 @@ func main() {
 
 `;
 
+const maxHeightEditor = EditorView.theme({
+  '&': {
+    width: '60vw',
+    maxHeight: '40vh',
+  },
+  '.cm-scroller': { overflow: 'auto' },
+});
+
 const state = EditorState.create({
   doc,
   extensions: [
     basicSetup,
+    maxHeightEditor,
     go(),
     tooltips({
       position: 'absolute',
@@ -89,7 +96,6 @@ const state = EditorState.create({
     goLspClient,
   ],
 });
-
 const view = new EditorView({
   state,
   parent: document.querySelector('#editor') as Element,

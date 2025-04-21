@@ -31,10 +31,10 @@ function example() {
 
 example();
 
-aabbC.def;
-
 console.log(';; stores ', stores.value);
 console.log(';; storesMock ', storesMock.value);
 
 let hello11 = 'Hello';
 let hello12 = 'World';
+
+aabbC.def;

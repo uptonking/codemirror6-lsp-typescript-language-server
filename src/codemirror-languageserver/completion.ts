@@ -44,86 +44,81 @@ export function convertCompletionItem(
   options: ConvertCompletionOptions,
 ): Completion {
   const {
-      detail,
-      labelDetails,
-      label,
-      kind,
-      textEdit,
-      insertText,
-      documentation,
-      additionalTextEdits,
-      insertTextFormat,
-    } = item,
-    completion: Completion = {
-      label,
-      detail: labelDetails?.detail || detail,
-      apply(
-        view: EditorView,
-        _completion: Completion,
-        from: number,
-        to: number,
-      ) {
-        if (textEdit && isLSPTextEdit(textEdit)) {
-          view.dispatch(
-            insertCompletionText(
-              view.state,
-              textEdit.newText,
-              posToOffsetOrZero(view.state.doc, textEdit.range.start),
-              posToOffsetOrZero(view.state.doc, textEdit.range.end),
-            ),
-          );
-        } else {
-          if (insertText && insertTextFormat == InsertTextFormat.Snippet) {
-            const applySnippet = snippet(convertSnippet(insertText));
-            applySnippet(view, null, from, to);
-          } else {
-            // By default it is PlainText
-            view.dispatch(
-              insertCompletionText(view.state, insertText || label, from, to),
-            );
-          }
-        }
-        if (!additionalTextEdits) {
-          return;
-        }
-        const sortedEdits = additionalTextEdits.sort(
-          ({ range: { end: a } }, { range: { end: b } }) => {
-            if (
-              posToOffsetOrZero(view.state.doc, a) <
-              posToOffsetOrZero(view.state.doc, b)
-            ) {
-              return 1;
-            }
-            if (
-              posToOffsetOrZero(view.state.doc, a) >
-              posToOffsetOrZero(view.state.doc, b)
-            ) {
-              return -1;
-            }
-            return 0;
-          },
+    detail,
+    labelDetails,
+    label,
+    kind,
+    textEdit,
+    insertText,
+    documentation,
+    additionalTextEdits,
+    insertTextFormat,
+  } = item;
+  const completion: Completion = {
+    label,
+    detail: labelDetails?.detail || detail,
+    apply(view: EditorView, _completion: Completion, from: number, to: number) {
+      if (textEdit && isLSPTextEdit(textEdit)) {
+        view.dispatch(
+          insertCompletionText(
+            view.state,
+            textEdit.newText,
+            posToOffsetOrZero(view.state.doc, textEdit.range.start),
+            posToOffsetOrZero(view.state.doc, textEdit.range.end),
+          ),
         );
-        for (const textEdit of sortedEdits) {
+      } else {
+        if (insertText && insertTextFormat == InsertTextFormat.Snippet) {
+          const applySnippet = snippet(convertSnippet(insertText));
+          applySnippet(view, null, from, to);
+        } else {
+          // By default it is PlainText
           view.dispatch(
-            view.state.update({
-              changes: {
-                from: posToOffsetOrZero(view.state.doc, textEdit.range.start),
-                to: posToOffset(view.state.doc, textEdit.range.end),
-                insert: textEdit.newText,
-              },
-            }),
+            insertCompletionText(view.state, insertText || label, from, to),
           );
         }
-      },
-      type: kind && CompletionItemKindMap[kind].toLowerCase(),
-    };
+      }
+      if (!additionalTextEdits) {
+        return;
+      }
+      const sortedEdits = additionalTextEdits.sort(
+        ({ range: { end: a } }, { range: { end: b } }) => {
+          if (
+            posToOffsetOrZero(view.state.doc, a) <
+            posToOffsetOrZero(view.state.doc, b)
+          ) {
+            return 1;
+          }
+          if (
+            posToOffsetOrZero(view.state.doc, a) >
+            posToOffsetOrZero(view.state.doc, b)
+          ) {
+            return -1;
+          }
+          return 0;
+        },
+      );
+      for (const textEdit of sortedEdits) {
+        view.dispatch(
+          view.state.update({
+            changes: {
+              from: posToOffsetOrZero(view.state.doc, textEdit.range.start),
+              to: posToOffset(view.state.doc, textEdit.range.end),
+              insert: textEdit.newText,
+            },
+          }),
+        );
+      }
+    },
+    type: kind && CompletionItemKindMap[kind].toLowerCase(),
+  };
 
   // Support lazy loading of documentation through completionItem/resolve
   if (options.hasResolveProvider && options.resolveItem) {
     completion.info = async () => {
       try {
-        const resolved = await options.resolveItem?.(item),
-          dom = document.createElement('div');
+        const resolved = await options.resolveItem?.(item);
+        const dom = document.createElement('div');
         dom.classList.add('documentation');
         const content = resolved?.documentation || documentation;
         if (!content) {
@@ -211,8 +206,8 @@ function prefixSortCompletion(prefix: string) {
   // 1. Prioritize items that start with the exact token text
   // 2. Otherwise maintain original order
   return (a: LSP.CompletionItem, b: LSP.CompletionItem) => {
-    const aText = a.sortText ?? a.label,
-      bText = b.sortText ?? b.label;
+    const aText = a.sortText ?? a.label;
+    const bText = b.sortText ?? b.label;
     switch (true) {
       case aText.startsWith(prefix) && !bText.startsWith(prefix):
         return -1;
@@ -224,15 +219,15 @@ function prefixSortCompletion(prefix: string) {
 }
 
 function nameSortCompletion(a: LSP.CompletionItem, b: LSP.CompletionItem) {
-  const aText = a.sortText ?? a.label,
-    bText = b.sortText ?? b.label;
+  const aText = a.sortText ?? a.label;
+  const bText = b.sortText ?? b.label;
   return aText.localeCompare(bText);
 }
 
 function pythonSortCompletion(a: LSP.CompletionItem, b: LSP.CompletionItem) {
   // For python, if label ends with `=`, it should be sorted first
-  const aIsAssignment = a.label.endsWith('='),
-    bIsAssignment = b.label.endsWith('=');
+  const aIsAssignment = a.label.endsWith('=');
+  const bIsAssignment = b.label.endsWith('=');
   if (aIsAssignment && !bIsAssignment) {
     return -1;
   }

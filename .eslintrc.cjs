@@ -43,7 +43,7 @@ module.exports = {
     'no-promise-executor-return': 1,
     'no-eq-null': 1,
     eqeqeq: 1,
-    'one-var': 0,
+    'one-var': [1, 'never'],
     'guard-for-in': 1,
     complexity: 1,
     'prefer-const': 1,

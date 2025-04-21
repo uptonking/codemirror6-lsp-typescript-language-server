@@ -36,11 +36,12 @@ import {
   posToOffset,
   posToOffsetOrZero,
   prefixMatch,
+  setLastHoverResult,
   showErrorMessage,
 } from './utils';
 
-const TIMEOUT = 10000,
-  logger = console.log;
+const TIMEOUT = 10000;
+const logger = console.log;
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 
@@ -160,93 +161,93 @@ export class LanguageServerClient {
 
   protected getInitializationOptions(): LSP.InitializeParams['initializationOptions'] {
     const defaultClientCapabilities: LSP.ClientCapabilities = {
-        textDocument: {
-          hover: {
-            dynamicRegistration: true,
-            contentFormat: ['markdown', 'plaintext'],
-          },
-          moniker: {},
-          synchronization: {
-            dynamicRegistration: true,
-            willSave: false,
-            didSave: false,
-            willSaveWaitUntil: false,
-          },
-          codeAction: {
-            dynamicRegistration: true,
-            codeActionLiteralSupport: {
-              codeActionKind: {
-                valueSet: [
-                  '',
-                  'quickfix',
-                  'refactor',
-                  'refactor.extract',
-                  'refactor.inline',
-                  'refactor.rewrite',
-                  'source',
-                  'source.organizeImports',
-                ],
-              },
-            },
-            resolveSupport: {
-              properties: ['edit'],
+      textDocument: {
+        hover: {
+          dynamicRegistration: true,
+          contentFormat: ['markdown', 'plaintext'],
+        },
+        moniker: {},
+        synchronization: {
+          dynamicRegistration: true,
+          willSave: false,
+          didSave: false,
+          willSaveWaitUntil: false,
+        },
+        codeAction: {
+          dynamicRegistration: true,
+          codeActionLiteralSupport: {
+            codeActionKind: {
+              valueSet: [
+                '',
+                'quickfix',
+                'refactor',
+                'refactor.extract',
+                'refactor.inline',
+                'refactor.rewrite',
+                'source',
+                'source.organizeImports',
+              ],
             },
           },
-          completion: {
-            dynamicRegistration: true,
-            completionItem: {
-              snippetSupport: true,
-              commitCharactersSupport: true,
-              documentationFormat: ['markdown', 'plaintext'],
-              deprecatedSupport: false,
-              preselectSupport: false,
-            },
-            contextSupport: false,
-          },
-          signatureHelp: {
-            dynamicRegistration: true,
-            signatureInformation: {
-              documentationFormat: ['markdown', 'plaintext'],
-            },
-          },
-          declaration: {
-            dynamicRegistration: true,
-            linkSupport: true,
-          },
-          definition: {
-            dynamicRegistration: true,
-            linkSupport: true,
-          },
-          typeDefinition: {
-            dynamicRegistration: true,
-            linkSupport: true,
-          },
-          implementation: {
-            dynamicRegistration: true,
-            linkSupport: true,
-          },
-          rename: {
-            dynamicRegistration: true,
-            prepareSupport: true,
+          resolveSupport: {
+            properties: ['edit'],
           },
         },
-        workspace: {
-          didChangeConfiguration: {
-            dynamicRegistration: true,
+        completion: {
+          dynamicRegistration: true,
+          completionItem: {
+            snippetSupport: true,
+            commitCharactersSupport: true,
+            documentationFormat: ['markdown', 'plaintext'],
+            deprecatedSupport: false,
+            preselectSupport: false,
           },
+          contextSupport: false,
+        },
+        signatureHelp: {
+          dynamicRegistration: true,
+          signatureInformation: {
+            documentationFormat: ['markdown', 'plaintext'],
+          },
+        },
+        declaration: {
+          dynamicRegistration: true,
+          linkSupport: true,
+        },
+        definition: {
+          dynamicRegistration: true,
+          linkSupport: true,
+        },
+        typeDefinition: {
+          dynamicRegistration: true,
+          linkSupport: true,
+        },
+        implementation: {
+          dynamicRegistration: true,
+          linkSupport: true,
+        },
+        rename: {
+          dynamicRegistration: true,
+          prepareSupport: true,
         },
       },
-      defaultOptions = {
-        capabilities: this.clientCapabilities
-          ? typeof this.clientCapabilities === 'function'
-            ? this.clientCapabilities(defaultClientCapabilities)
-            : this.clientCapabilities
-          : defaultClientCapabilities,
-        initializationOptions: this.initializationOptions,
-        processId: null,
-        rootUri: this.rootUri,
-        workspaceFolders: this.workspaceFolders,
-      };
+      workspace: {
+        didChangeConfiguration: {
+          dynamicRegistration: true,
+        },
+      },
+    };
+    const defaultOptions = {
+      capabilities: this.clientCapabilities
+        ? typeof this.clientCapabilities === 'function'
+          ? this.clientCapabilities(defaultClientCapabilities)
+          : this.clientCapabilities
+        : defaultClientCapabilities,
+      initializationOptions: this.initializationOptions,
+      processId: null,
+      rootUri: this.rootUri,
+      workspaceFolders: this.workspaceFolders,
+    };
 
     return defaultOptions;
   }
@@ -442,7 +443,6 @@ export class LanguageServerPlugin implements PluginValue {
     view: EditorView,
     { line, character }: { line: number; character: number },
   ): Promise<Tooltip | null> {
-    // Check if hover is enabled
     if (!this.featureOptions.hoverEnabled) {
       return null;
     }
@@ -455,12 +455,16 @@ export class LanguageServerPlugin implements PluginValue {
       textDocument: { uri: this.documentUri },
       position: { line, character },
     });
+    console.log(';; ws-hover-result ', result);
+
     if (!result) {
+      setLastHoverResult(null);
       return null;
     }
+    setLastHoverResult(result);
     const { contents, range } = result;
-    let pos = posToOffset(view.state.doc, { line, character }),
-      end: number | undefined;
+    let pos = posToOffset(view.state.doc, { line, character });
+    let end: number | undefined;
     if (range) {
       pos = posToOffset(view.state.doc, range.start);
       end = posToOffset(view.state.doc, range.end);
@@ -497,7 +501,6 @@ export class LanguageServerPlugin implements PluginValue {
       triggerCharacter: string | undefined;
     },
   ): Promise<CompletionResult | null> {
-    // Check if completion is enabled
     if (!this.featureOptions.completionEnabled) {
       return null;
     }
@@ -519,13 +522,13 @@ export class LanguageServerPlugin implements PluginValue {
       return null;
     }
 
-    const items = 'items' in result ? result.items : result,
-      // Match is undefined if there are no common prefixes
-      match = prefixMatch(items),
-      token = match
-        ? context.matchBefore(match)
-        : // Fallback to matching any character
-          context.matchBefore(/[a-zA-Z0-9]+/);
+    const items = 'items' in result ? result.items : result;
+    // Match is undefined if there are no common prefixes
+    const match = prefixMatch(items);
+    const token = match
+      ? context.matchBefore(match)
+      : // Fallback to matching any character
+        context.matchBefore(/[a-zA-Z0-9]+/);
     let { pos } = context;
 
     const sortedItems = sortCompletionItems(
@@ -561,7 +564,6 @@ export class LanguageServerPlugin implements PluginValue {
     view: EditorView,
     { line, character }: { line: number; character: number },
   ) {
-    // Check if definition is enabled
     if (!this.featureOptions.definitionEnabled) {
       return;
     }
@@ -574,6 +576,11 @@ export class LanguageServerPlugin implements PluginValue {
       textDocument: { uri: this.documentUri },
       position: { line, character },
     });
+    console.log(
+      ';; ws-def-result ',
+      Array.isArray(result) ? result[0] : 'def-multi',
+      result,
+    );
 
     if (!result) return;
 
@@ -583,16 +590,21 @@ export class LanguageServerPlugin implements PluginValue {
     // For now just handle the first location
     const location = locations[0];
     if (!location) return;
-    const uri = 'uri' in location ? location.uri : location.targetUri,
-      range = 'range' in location ? location.range : location.targetRange,
-      // Check if the definition is in a different document
-      isExternalDocument = uri !== this.documentUri,
-      // Create the definition result
-      definitionResult: DefinitionResult = {
-        uri,
-        range,
-        isExternalDocument,
-      };
+    const uri = 'uri' in location ? location.uri : location.targetUri;
+    const range = 'range' in location ? location.range : location.targetRange;
+    const selectionRange =
+      'targetSelectionRange' in location
+        ? location.targetSelectionRange
+        : range;
+    // Check if the definition is in a different document
+    const isExternalDocument = uri !== this.documentUri;
+    // Create the definition result
+    const definitionResult: DefinitionResult = {
+      uri,
+      range,
+      selectionRange,
+      isExternalDocument,
+    };
 
     // If it's the same document, update the selection
     if (!isExternalDocument) {
@@ -629,7 +641,6 @@ export class LanguageServerPlugin implements PluginValue {
       return;
     }
 
-    // Check if diagnostics are enabled
     const diagEnabled = this.featureOptions.diagnosticsEnabled;
     if (!diagEnabled) {
       // Clear any existing diagnostics if disabled
@@ -638,71 +649,66 @@ export class LanguageServerPlugin implements PluginValue {
     }
 
     const severityMap: Record<DiagnosticSeverity, Diagnostic['severity']> = {
-        [DiagnosticSeverity.Error]: 'error',
-        [DiagnosticSeverity.Warning]: 'warning',
-        [DiagnosticSeverity.Information]: 'info',
-        [DiagnosticSeverity.Hint]: 'info',
+      [DiagnosticSeverity.Error]: 'error',
+      [DiagnosticSeverity.Warning]: 'warning',
+      [DiagnosticSeverity.Information]: 'info',
+      [DiagnosticSeverity.Hint]: 'info',
+    };
+    const diagnostics = params.diagnostics.map(
+      async ({ range, message, severity, code }) => {
+        const actions = await this.requestCodeActions(range, [code as string]);
+        const codemirrorActions = actions?.map(
+          (action): Action => ({
+            name:
+              'command' in action && typeof action.command === 'object'
+                ? action.command?.title || action.title
+                : action.title,
+            apply: async () => {
+              if ('edit' in action && action.edit?.changes) {
+                const changes = action.edit.changes[this.documentUri];
+
+                if (!changes) {
+                  return;
+                }
+
+                // Apply workspace edit
+                for (const change of changes) {
+                  this.view.dispatch(
+                    this.view.state.update({
+                      changes: {
+                        from: posToOffsetOrZero(
+                          this.view.state.doc,
+                          change.range.start,
+                        ),
+                        to: posToOffset(this.view.state.doc, change.range.end),
+                        insert: change.newText,
+                      },
+                    }),
+                  );
+                }
+              }
+
+              if ('command' in action && action.command) {
+                // TODO: Implement command execution
+                // Execute command if present
+                logger('Executing command:', action.command);
+              }
+            },
+          }),
+        );
+        const diagnostic: Diagnostic = {
+          from: posToOffsetOrZero(this.view.state.doc, range.start),
+          to: posToOffsetOrZero(this.view.state.doc, range.end),
+          severity: severityMap[severity ?? DiagnosticSeverity.Error],
+          message: message,
+          source: this.languageId,
+          actions: codemirrorActions,
+        };
+
+        return diagnostic;
       },
-      diagnostics = params.diagnostics.map(
-        async ({ range, message, severity, code }) => {
-          const actions = await this.requestCodeActions(range, [
-              code as string,
-            ]),
-            codemirrorActions = actions?.map(
-              (action): Action => ({
-                name:
-                  'command' in action && typeof action.command === 'object'
-                    ? action.command?.title || action.title
-                    : action.title,
-                apply: async () => {
-                  if ('edit' in action && action.edit?.changes) {
-                    const changes = action.edit.changes[this.documentUri];
-
-                    if (!changes) {
-                      return;
-                    }
-
-                    // Apply workspace edit
-                    for (const change of changes) {
-                      this.view.dispatch(
-                        this.view.state.update({
-                          changes: {
-                            from: posToOffsetOrZero(
-                              this.view.state.doc,
-                              change.range.start,
-                            ),
-                            to: posToOffset(
-                              this.view.state.doc,
-                              change.range.end,
-                            ),
-                            insert: change.newText,
-                          },
-                        }),
-                      );
-                    }
-                  }
-
-                  if ('command' in action && action.command) {
-                    // TODO: Implement command execution
-                    // Execute command if present
-                    logger('Executing command:', action.command);
-                  }
-                },
-              }),
-            ),
-            diagnostic: Diagnostic = {
-              from: posToOffsetOrZero(this.view.state.doc, range.start),
-              to: posToOffsetOrZero(this.view.state.doc, range.end),
-              severity: severityMap[severity ?? DiagnosticSeverity.Error],
-              message: message,
-              source: this.languageId,
-              actions: codemirrorActions,
-            };
-
-          return diagnostic;
-        },
-      ),
-      resolvedDiagnostics = await Promise.all(diagnostics);
+    );
+    const resolvedDiagnostics = await Promise.all(diagnostics);
     this.view.dispatch(setDiagnostics(this.view.state, resolvedDiagnostics));
   }
 
@@ -710,7 +716,6 @@ export class LanguageServerPlugin implements PluginValue {
     range: LSP.Range,
     diagnosticCodes: string[],
   ): Promise<(LSP.Command | LSP.CodeAction)[] | null> {
-    // Check if code actions are enabled
     if (!this.featureOptions.codeActionsEnabled) {
       return null;
     }
@@ -739,7 +744,6 @@ export class LanguageServerPlugin implements PluginValue {
     view: EditorView,
     { line, character }: { line: number; character: number },
   ) {
-    // Check if rename is enabled
     if (!this.featureOptions.renameEnabled) {
       return;
     }
@@ -788,8 +792,8 @@ export class LanguageServerPlugin implements PluginValue {
 
       // Get current word as default value
       const range =
-          'range' in prepareResult ? prepareResult.range : prepareResult,
-        from = posToOffset(view.state.doc, range.start);
+        'range' in prepareResult ? prepareResult.range : prepareResult;
+      const from = posToOffset(view.state.doc, range.start);
       if (from == null) {
         return;
       }
@@ -884,7 +888,6 @@ export class LanguageServerPlugin implements PluginValue {
     },
     triggerCharacter: string | undefined = undefined,
   ): Promise<Tooltip | null> {
-    // Check if signature help is enabled
     if (
       !(
         this.featureOptions.signatureHelpEnabled &&
@@ -912,23 +915,23 @@ export class LanguageServerPlugin implements PluginValue {
       }
 
       // Create the tooltip container
-      const dom = this.createTooltipContainer(),
-        // Get active signature
-        activeSignatureIndex = result.activeSignature ?? 0,
-        activeSignature =
-          result.signatures[activeSignatureIndex] || result.signatures[0];
+      const dom = this.createTooltipContainer();
+      // Get active signature
+      const activeSignatureIndex = result.activeSignature ?? 0;
+      const activeSignature =
+        result.signatures[activeSignatureIndex] || result.signatures[0];
 
       if (!activeSignature) {
         return null;
       }
 
       const activeParameterIndex =
-          result.activeParameter ?? activeSignature.activeParameter ?? 0,
-        // Create and add signature display element
-        signatureElement = this.createSignatureElement(
-          activeSignature,
-          activeParameterIndex,
-        );
+        result.activeParameter ?? activeSignature.activeParameter ?? 0;
+      // Create and add signature display element
+      const signatureElement = this.createSignatureElement(
+        activeSignature,
+        activeParameterIndex,
+      );
       dom.appendChild(signatureElement);
 
       // Add documentation if available
@@ -981,9 +984,9 @@ export class LanguageServerPlugin implements PluginValue {
 
     if (tooltip) {
       // Create and show the tooltip manually
-      const { pos: tooltipPos, create } = tooltip,
-        tooltipView = create(view),
-        tooltipElement = document.createElement('div');
+      const { pos: tooltipPos, create } = tooltip;
+      const tooltipView = create(view);
+      const tooltipElement = document.createElement('div');
       tooltipElement.className = 'cm-tooltip cm-signature-tooltip';
       tooltipElement.style.position = 'absolute';
 
@@ -1043,8 +1046,8 @@ export class LanguageServerPlugin implements PluginValue {
       return signatureElement;
     }
 
-    const signatureText = signature.label,
-      parameters = signature.parameters || [];
+    const signatureText = signature.label;
+    const parameters = signature.parameters || [];
 
     // If there are no parameters or no active parameter, just show the signature text
     if (parameters.length === 0 || !parameters[activeParameterIndex]) {
@@ -1096,9 +1099,9 @@ export class LanguageServerPlugin implements PluginValue {
     element.textContent = '';
 
     // Split the text into three parts: before, parameter, after
-    const beforeParam = text.substring(0, startIndex),
-      param = text.substring(startIndex, endIndex),
-      afterParam = text.substring(endIndex);
+    const beforeParam = text.substring(0, startIndex);
+    const param = text.substring(startIndex, endIndex);
+    const afterParam = text.substring(endIndex);
 
     // Add the parts to the element
     element.appendChild(document.createTextNode(beforeParam));
@@ -1163,17 +1166,17 @@ export class LanguageServerPlugin implements PluginValue {
     view: EditorView,
     { line, character }: { line: number; character: number },
   ): LSP.PrepareRenameResult | null {
-    const doc = view.state.doc,
-      lineText = doc.line(line + 1).text,
-      wordRegex = /\w+/g;
-    let match: RegExpExecArray | null,
-      start = character,
-      end = character;
+    const doc = view.state.doc;
+    const lineText = doc.line(line + 1).text;
+    const wordRegex = /\w+/g;
+    let match: RegExpExecArray | null;
+    let start = character;
+    let end = character;
     // Find all word matches in the line
     // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
     while ((match = wordRegex.exec(lineText)) !== null) {
-      const matchStart = match.index,
-        matchEnd = match.index + match[0].length;
+      const matchStart = match.index;
+      const matchEnd = match.index + match[0].length;
 
       // Check if cursor position is within or at the boundaries of this word
       if (character >= matchStart && character <= matchEnd) {
@@ -1217,8 +1220,8 @@ export class LanguageServerPlugin implements PluginValue {
       return false;
     }
 
-    const changesMap = edit.changes ?? {},
-      documentChanges = edit.documentChanges ?? [];
+    const changesMap = edit.changes ?? {};
+    const documentChanges = edit.documentChanges ?? [];
 
     if (Object.keys(changesMap).length === 0 && documentChanges.length === 0) {
       showErrorMessage(view, 'No changes to apply');
@@ -1239,16 +1242,16 @@ export class LanguageServerPlugin implements PluginValue {
 
           // Sort edits in reverse order to avoid position shifts
           const sortedEdits = docChange.edits.sort((a, b) => {
-              const posA = posToOffset(view.state.doc, a.range.start),
-                posB = posToOffset(view.state.doc, b.range.start);
-              return (posB ?? 0) - (posA ?? 0);
-            }),
-            // Create a single transaction with all changes
-            changes = sortedEdits.map((edit) => ({
-              from: posToOffset(view.state.doc, edit.range.start) ?? 0,
-              to: posToOffset(view.state.doc, edit.range.end) ?? 0,
-              insert: edit.newText,
-            }));
+            const posA = posToOffset(view.state.doc, a.range.start);
+            const posB = posToOffset(view.state.doc, b.range.start);
+            return (posB ?? 0) - (posA ?? 0);
+          });
+          // Create a single transaction with all changes
+          const changes = sortedEdits.map((edit) => ({
+            from: posToOffset(view.state.doc, edit.range.start) ?? 0,
+            to: posToOffset(view.state.doc, edit.range.end) ?? 0,
+            insert: edit.newText,
+          }));
 
           view.dispatch(view.state.update({ changes }));
           return true;
@@ -1273,16 +1276,16 @@ export class LanguageServerPlugin implements PluginValue {
 
         // Sort changes in reverse order to avoid position shifts
         const sortedChanges = changes.sort((a, b) => {
-            const posA = posToOffset(view.state.doc, a.range.start),
-              posB = posToOffset(view.state.doc, b.range.start);
-            return (posB ?? 0) - (posA ?? 0);
-          }),
-          // Create a single transaction with all changes
-          changeSpecs = sortedChanges.map((change) => ({
-            from: posToOffset(view.state.doc, change.range.start) ?? 0,
-            to: posToOffset(view.state.doc, change.range.end) ?? 0,
-            insert: change.newText,
-          }));
+          const posA = posToOffset(view.state.doc, a.range.start);
+          const posB = posToOffset(view.state.doc, b.range.start);
+          return (posB ?? 0) - (posA ?? 0);
+        });
+        // Create a single transaction with all changes
+        const changeSpecs = sortedChanges.map((change) => ({
+          from: posToOffset(view.state.doc, change.range.start) ?? 0,
+          to: posToOffset(view.state.doc, change.range.end) ?? 0,
+          insert: change.newText,
+        }));
 
         view.dispatch(view.state.update({ changes: changeSpecs }));
       }
@@ -1337,8 +1340,10 @@ interface KeyboardShortcuts {
 interface DefinitionResult {
   /** URI of the target document containing the definition */
   uri: string;
-  /** Range in the document where the definition is located */
+  /** Range in the document where the definition is located, like variable-line, function-body-lines */
   range: LSP.Range;
+  /** selectionRange is the highlighted part in the definition range, like variable/function name */
+  selectionRange: LSP.Range;
   /** Whether the definition is in a different file than the current document */
   isExternalDocument: boolean;
 }
@@ -1422,40 +1427,40 @@ export function languageServer(options: LanguageServerWebsocketOptions) {
 export function languageServerWithClient(options: LanguageServerOptions) {
   let plugin: LanguageServerPlugin | null = null;
   const shortcuts = {
-      rename: 'F2',
-      goToDefinition: 'F12',
-      signatureHelp: 'Mod-Shift-Space',
-      ...options.keyboardShortcuts,
-    },
-    lsClient = options.client,
-    featuresOptions: Required<FeatureOptions> = {
-      // Default to true
-      diagnosticsEnabled: true,
-      hoverEnabled: true,
-      completionEnabled: true,
-      definitionEnabled: true,
-      renameEnabled: true,
-      codeActionsEnabled: true,
-      signatureHelpEnabled: true,
-      signatureActivateOnTyping: false,
-      // Override defaults with provided options
-      ...options,
-    },
-    // Create base extensions array
-    extensions: Extension[] = [
-      ViewPlugin.define((view) => {
-        plugin = new LanguageServerPlugin(
-          lsClient,
-          options.documentUri ?? view.state.facet(documentUri),
-          options.languageId ?? view.state.facet(languageId),
-          view,
-          featuresOptions,
-          options.allowHTMLContent ?? false,
-          options.onGoToDefinition,
-        );
-        return plugin;
-      }),
-    ];
+    rename: 'F2',
+    goToDefinition: 'F12',
+    signatureHelp: 'Mod-Shift-Space',
+    ...options.keyboardShortcuts,
+  };
+  const lsClient = options.client;
+  const featuresOptions: Required<FeatureOptions> = {
+    // Default to true
+    diagnosticsEnabled: true,
+    hoverEnabled: true,
+    completionEnabled: true,
+    definitionEnabled: true,
+    renameEnabled: true,
+    codeActionsEnabled: true,
+    signatureHelpEnabled: true,
+    signatureActivateOnTyping: false,
+    // Override defaults with provided options
+    ...options,
+  };
+  // Create base extensions array
+  const extensions: Extension[] = [
+    ViewPlugin.define((view) => {
+      plugin = new LanguageServerPlugin(
+        lsClient,
+        options.documentUri ?? view.state.facet(documentUri),
+        options.languageId ?? view.state.facet(languageId),
+        view,
+        featuresOptions,
+        options.allowHTMLContent ?? false,
+        options.onGoToDefinition,
+      );
+      return plugin;
+    }),
+  ];
 
   // Add shortcuts
   extensions.push(
@@ -1533,8 +1538,8 @@ export function languageServerWithClient(options: LanguageServerOptions) {
 
         // Check if changes include trigger characters
         const changes = update.changes;
-        let shouldTrigger = false,
-          triggerPos = -1;
+        let shouldTrigger = false;
+        let triggerPos = -1;
 
         changes.iterChanges((_fromA, _toA, _fromB, toB, inserted) => {
           if (shouldTrigger) return; // Skip if already found a trigger
@@ -1585,13 +1590,13 @@ export function languageServerWithClient(options: LanguageServerOptions) {
               return null;
             }
 
-            const { state, pos } = context,
-              result = getCompletionTriggerKind(
-                context,
-                plugin.client.capabilities?.completionProvider
-                  ?.triggerCharacters ?? [],
-                options.completionMatchBefore,
-              );
+            const { state, pos } = context;
+            const result = getCompletionTriggerKind(
+              context,
+              plugin.client.capabilities?.completionProvider
+                ?.triggerCharacters ?? [],
+              options.completionMatchBefore,
+            );
 
             if (result == null) {
               return null;
@@ -1649,16 +1654,16 @@ export function getCompletionTriggerKind(
   triggerCharacters: string[],
   matchBeforePattern?: RegExp,
 ) {
-  const { state, pos, explicit } = context,
-    line = state.doc.lineAt(pos);
+  const { state, pos, explicit } = context;
+  const line = state.doc.lineAt(pos);
 
   // Determine trigger kind and character
-  let triggerKind: CompletionTriggerKind = CompletionTriggerKind.Invoked,
-    triggerCharacter: string | undefined;
+  let triggerKind: CompletionTriggerKind = CompletionTriggerKind.Invoked;
+  let triggerCharacter: string | undefined;
 
   // Check if completion was triggered by a special character
-  const prevChar = line.text[pos - line.from - 1] || '',
-    isTriggerChar = triggerCharacters?.includes(prevChar);
+  const prevChar = line.text[pos - line.from - 1] || '';
+  const isTriggerChar = triggerCharacters?.includes(prevChar);
 
   if (!explicit && isTriggerChar) {
     triggerKind = CompletionTriggerKind.TriggerCharacter;
