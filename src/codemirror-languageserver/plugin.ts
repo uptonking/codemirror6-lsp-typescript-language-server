@@ -29,6 +29,7 @@ import {
 import { convertCompletionItem, sortCompletionItems } from './completion';
 import { documentUri, languageId } from './config';
 import {
+  clearHoverResult,
   eventsFromChangeSet,
   formatContents,
   isEmptyDocumentation,
@@ -36,7 +37,7 @@ import {
   posToOffset,
   posToOffsetOrZero,
   prefixMatch,
-  setLastHoverResult,
+  setLatestHoverResult,
   showErrorMessage,
 } from './utils';
 
@@ -94,6 +95,9 @@ type Notification = {
   };
 }[keyof LSPEventMap];
 
+/**
+ * events requests utils with network transport
+ */
 export class LanguageServerClient {
   public ready: boolean;
   public capabilities: LSP.ServerCapabilities | null;
@@ -352,6 +356,9 @@ export class LanguageServerClient {
   }
 }
 
+/**
+ * trigger lsp events from codemirror editor
+ */
 export class LanguageServerPlugin implements PluginValue {
   private documentVersion: number;
   public client: LanguageServerClient;
@@ -458,10 +465,10 @@ export class LanguageServerPlugin implements PluginValue {
     console.log(';; ws-hover-result ', result);
 
     if (!result) {
-      setLastHoverResult(null);
+      clearHoverResult();
       return null;
     }
-    setLastHoverResult(result);
+    setLatestHoverResult(result);
     const { contents, range } = result;
     let pos = posToOffset(view.state.doc, { line, character });
     let end: number | undefined;

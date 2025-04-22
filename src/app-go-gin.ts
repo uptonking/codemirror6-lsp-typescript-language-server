@@ -4,13 +4,20 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 
-import { languageServer } from './codemirror-languageserver';
+import {
+  defUnderlinePlugin,
+  languageServer,
+} from './codemirror-languageserver';
+import { posToOffset } from './codemirror-languageserver/utils';
+import { scrollToAndCenterAtPos } from './utils';
 // import { languageServer } from './codemirror-languageserver-toph';
 
 /** absolute path to example-project folder */
 const exampleProjectRootPath =
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/go-gin-gorm';
+const exampleDocPath = 'main.go';
+
 const goLspClient = languageServer({
   serverUri: 'ws://localhost:3000/go',
   workspaceFolders: [],
@@ -21,12 +28,20 @@ const goLspClient = languageServer({
   //     },
   //   ],
   rootUri: exampleProjectRootPath,
-  documentUri: exampleProjectRootPath + '/main.go',
+  documentUri: exampleProjectRootPath + '/' + exampleDocPath,
   languageId: 'go',
 
   // @ts-ignore to-implement and improve
   onGoToDefinition: (result) => {
     console.log(';; onGoToDef ', result);
+    const selectionRange = result.selectionRange;
+    if (
+      result.uri === exampleProjectRootPath + '/' + exampleDocPath &&
+      selectionRange
+    ) {
+      const selOffset = posToOffset(view.state.doc, selectionRange.start);
+      scrollToAndCenterAtPos(view, selOffset);
+    }
   },
   keyboardShortcuts: {
     rename: 'F2', // Default: F2
@@ -78,7 +93,7 @@ func main() {
 const maxHeightEditor = EditorView.theme({
   '&': {
     width: '60vw',
-    maxHeight: '40vh',
+    maxHeight: '55vh',
   },
   '.cm-scroller': { overflow: 'auto' },
 });
@@ -94,6 +109,7 @@ const state = EditorState.create({
     }),
     lintGutter(),
     goLspClient,
+    defUnderlinePlugin(),
   ],
 });
 const view = new EditorView({

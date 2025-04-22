@@ -6,4 +6,4 @@ export {
 } from './plugin';
 
 export { languageId, documentUri } from './config';
-export { defCandidatePlugin } from './definition-jump';
+export { defUnderlinePlugin } from './definition-underline';

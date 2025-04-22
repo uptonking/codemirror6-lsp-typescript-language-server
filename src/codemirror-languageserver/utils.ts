@@ -4,14 +4,18 @@ import type { EditorView } from '@codemirror/view';
 import { marked } from 'marked';
 import type * as LSP from 'vscode-languageserver-protocol';
 
-let lastHoverResult: LSP.Hover | null = null;
+let latestHoverResult: LSP.Hover | null = null;
 
-export function setLastHoverResult(result: LSP.Hover | null) {
-  lastHoverResult = result;
+export function getLatestHoverResult() {
+  return latestHoverResult;
 }
 
-export function getLastHoverResult() {
-  return lastHoverResult;
+export function setLatestHoverResult(result: LSP.Hover | null) {
+  latestHoverResult = result;
+}
+
+export function clearHoverResult() {
+  latestHoverResult = null;
 }
 
 export function posToOffset(

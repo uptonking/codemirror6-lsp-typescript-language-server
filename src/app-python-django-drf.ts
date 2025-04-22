@@ -4,13 +4,20 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 
-import { languageServer } from './codemirror-languageserver';
+import {
+  defUnderlinePlugin,
+  languageServer,
+} from './codemirror-languageserver';
+import { scrollToAndCenterAtPos } from './utils';
+import { posToOffset } from './codemirror-languageserver/utils';
 // import { languageServer } from './codemirror-languageserver-toph';
 
 /** absolute path to example-project folder */
 const exampleProjectRootPath =
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/python-django-drf';
+const exampleDocPath = 'api/views_backup.py';
+
 const pythonLspClient = languageServer({
   serverUri: 'ws://localhost:3000/python',
   workspaceFolders: [],
@@ -21,12 +28,20 @@ const pythonLspClient = languageServer({
   //     },
   //   ],
   rootUri: exampleProjectRootPath,
-  documentUri: exampleProjectRootPath + '/api/views_backup.py',
+  documentUri: exampleProjectRootPath + '/' + exampleDocPath,
   languageId: 'python',
 
   // @ts-ignore to-implement and improve
   onGoToDefinition: (result) => {
     console.log(';; onGoToDef ', result);
+    const selectionRange = result.selectionRange;
+    if (
+      result.uri === exampleProjectRootPath + '/' + exampleDocPath &&
+      selectionRange
+    ) {
+      const selOffset = posToOffset(view.state.doc, selectionRange.start);
+      scrollToAndCenterAtPos(view, selOffset);
+    }
   },
   keyboardShortcuts: {
     rename: 'F2', // Default: F2
@@ -163,7 +178,7 @@ class TopicDetailView(APIView):
 const maxHeightEditor = EditorView.theme({
   '&': {
     width: '60vw',
-    maxHeight: '40vh',
+    maxHeight: '55vh',
   },
   '.cm-scroller': { overflow: 'auto' },
 });
@@ -178,6 +193,7 @@ const state = EditorState.create({
     }),
     lintGutter(),
     pythonLspClient,
+    defUnderlinePlugin(),
   ],
 });
 const view = new EditorView({

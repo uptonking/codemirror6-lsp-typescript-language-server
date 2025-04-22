@@ -25,4 +25,3 @@ export function scrollToAndCenterAtPos(view: EditorView, pos = 0) {
     },
   });
 }
-

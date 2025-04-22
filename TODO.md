@@ -6,7 +6,7 @@
 
 ## todo
 
-- [ ] jump to definition in editor
+- [x] jump to definition in editor
 - [ ] hover markdown renderer
 
 - [ ] support to import json

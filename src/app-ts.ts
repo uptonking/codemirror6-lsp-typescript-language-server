@@ -5,7 +5,7 @@ import { EditorView, tooltips } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 
 import {
-  defCandidatePlugin,
+  defUnderlinePlugin,
   languageServer,
 } from './codemirror-languageserver';
 import { posToOffset } from './codemirror-languageserver/utils';
@@ -18,6 +18,7 @@ const exampleProjectRootPath =
   // ''
   'file:///Users/yaoo/Documents/repos/com2024-showmebug/yaoo/codemirror6-lsp-typescript-language-server/example-projects/ts-js';
 const exampleDocPath = 'jslang.ts';
+
 const tsLspClient = languageServer({
   serverUri: 'ws://localhost:3000/typescript',
   workspaceFolders: [],
@@ -35,8 +36,11 @@ const tsLspClient = languageServer({
   onGoToDefinition: (result) => {
     console.log(';; onGoToDef ', result);
     const selectionRange = result.selectionRange;
+    const resultUriPath = result.uri.startsWith('file://')
+      ? result.uri.slice(7)
+      : result.uri;
     if (
-      result.uri === exampleProjectRootPath + '/' + exampleDocPath &&
+      resultUriPath === exampleProjectRootPath + '/' + exampleDocPath &&
       selectionRange
     ) {
       const selOffset = posToOffset(view.state.doc, selectionRange.start);
@@ -98,7 +102,7 @@ aabbC.def;
 const maxHeightEditor = EditorView.theme({
   '&': {
     width: '60vw',
-    maxHeight: '40vh',
+    maxHeight: '55vh',
   },
   '.cm-scroller': { overflow: 'auto' },
 });
@@ -114,7 +118,7 @@ const state = EditorState.create({
     }),
     lintGutter(),
     tsLspClient,
-    defCandidatePlugin(),
+    defUnderlinePlugin(),
     // languageServerWithClient({
     //   client: new LanguageServerClient({
     //     rootUri: 'file:///',
@@ -134,6 +138,8 @@ const view = new EditorView({
   state,
   parent: document.querySelector('#editor') as Element,
 });
+
+window['edd'] = view;
 
 // Set up diagnostic buttons
 document.querySelector('#addError')?.addEventListener('click', () => {
