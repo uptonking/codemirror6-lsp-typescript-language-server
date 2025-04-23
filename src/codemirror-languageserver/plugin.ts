@@ -1442,13 +1442,13 @@ export function languageServerWithClient(options: LanguageServerOptions) {
   const lsClient = options.client;
   const featuresOptions: Required<FeatureOptions> = {
     // Default to true
-    diagnosticsEnabled: true,
+    diagnosticsEnabled: false,
     hoverEnabled: true,
     completionEnabled: true,
     definitionEnabled: true,
     renameEnabled: true,
     codeActionsEnabled: true,
-    signatureHelpEnabled: true,
+    signatureHelpEnabled: false,
     signatureActivateOnTyping: false,
     // Override defaults with provided options
     ...options,
