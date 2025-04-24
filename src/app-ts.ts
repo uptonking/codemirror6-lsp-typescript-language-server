@@ -34,13 +34,21 @@ const tsLspClient = languageServer({
 
   // @ts-ignore to-implement and improve
   onGoToDefinition: (result) => {
-    console.log(';; onGoToDef ', result);
     const selectionRange = result.selectionRange;
     const resultUriPath = result.uri.startsWith('file://')
       ? result.uri.slice(7)
       : result.uri;
-    if (
+    console.log(
+      ';; onGoToDef ',
       resultUriPath === exampleProjectRootPath + '/' + exampleDocPath &&
+        selectionRange,
+      resultUriPath,
+      exampleProjectRootPath + '/' + exampleDocPath,
+      result,
+    );
+    if (
+      resultUriPath ===
+        exampleProjectRootPath.slice(7) + '/' + exampleDocPath &&
       selectionRange
     ) {
       const selOffset = posToOffset(view.state.doc, selectionRange.start);
@@ -112,6 +120,7 @@ const state = EditorState.create({
   extensions: [
     basicSetup,
     maxHeightEditor,
+    EditorView.clickAddsSelectionRange.of((event) => event.altKey),
     javascript(),
     tooltips({
       position: 'absolute',

@@ -187,6 +187,7 @@ const state = EditorState.create({
   extensions: [
     basicSetup,
     maxHeightEditor,
+    EditorView.clickAddsSelectionRange.of((event) => event.altKey),
     python(),
     tooltips({
       position: 'absolute',

@@ -1,21 +1,84 @@
 import type { Text } from '@codemirror/state';
-import { ChangeSet } from '@codemirror/state';
+import { ChangeSet, StateEffect } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import { marked } from 'marked';
 import type * as LSP from 'vscode-languageserver-protocol';
 
-let latestHoverResult: LSP.Hover | null = null;
+export const clearDefUnderline = StateEffect.define<null>();
 
+export const addDefUnderline = StateEffect.define<{ from: number; to: number }>(
+  {
+    map: ({ from, to }, change) => ({
+      from: change.mapPos(from),
+      to: change.mapPos(to),
+    }),
+  },
+);
+
+let latestHoverResult: LSP.Hover | null = null;
 export function getLatestHoverResult() {
   return latestHoverResult;
 }
-
 export function setLatestHoverResult(result: LSP.Hover | null) {
   latestHoverResult = result;
 }
-
 export function clearHoverResult() {
   latestHoverResult = null;
+}
+
+/** cache mouse position at editor for showing underline */
+let mousePosAtEditor: number | null = null;
+export function getMousePosAtEditor() {
+  return mousePosAtEditor;
+}
+export function setMousePosAtEditor(pos: number | null) {
+  mousePosAtEditor = pos;
+}
+
+let isCmdOrCtrlPressed = false;
+export function getIsCmdOrCtrlPressed() {
+  return isCmdOrCtrlPressed;
+}
+export function setIsCmdOrCtrlPressed(isPressed: boolean) {
+  isCmdOrCtrlPressed = isPressed;
+}
+
+export function markRangeAsUnderlined(
+  view: EditorView,
+  hoverRange?: LSP.Range,
+) {
+  if (!hoverRange) {
+    hoverRange = getLatestHoverResult()?.range;
+  }
+  if (hoverRange) {
+    const start = posToOffset(view.state.doc, hoverRange.start)!;
+    const end = posToOffset(view.state.doc, hoverRange.end)!;
+
+    const mousePosAtEditor = getMousePosAtEditor();
+
+    // console.log(';; try-line ', mousePosAtEditor, start, end);
+    if (
+      mousePosAtEditor == null ||
+      mousePosAtEditor < start ||
+      mousePosAtEditor > end
+    ) {
+      view.dispatch({
+        effects: clearDefUnderline.of(null),
+      });
+      return;
+    }
+
+    view.dispatch({
+      effects: addDefUnderline.of({
+        from: posToOffset(view.state.doc, hoverRange.start)!,
+        to: posToOffset(view.state.doc, hoverRange.end)!,
+      }),
+    });
+  } else {
+    view.dispatch({
+      effects: clearDefUnderline.of(null),
+    });
+  }
 }
 
 export function posToOffset(

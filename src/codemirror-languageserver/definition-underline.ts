@@ -1,6 +1,18 @@
-import { StateEffect, StateField } from '@codemirror/state';
-import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
-import { clearHoverResult, getLatestHoverResult, posToOffset } from './utils';
+import { StateField } from '@codemirror/state';
+import {
+  Decoration,
+  DecorationSet,
+  EditorView,
+  ViewPlugin,
+} from '@codemirror/view';
+import {
+  addDefUnderline,
+  clearDefUnderline,
+  clearHoverResult,
+  markRangeAsUnderlined,
+  setIsCmdOrCtrlPressed,
+  setMousePosAtEditor,
+} from './utils';
 
 const defUnderlineTheme = EditorView.baseTheme({
   '.cm-def-underline': {
@@ -12,17 +24,6 @@ const defUnderlineTheme = EditorView.baseTheme({
 });
 
 const defUnderlineDeco = Decoration.mark({ class: 'cm-def-underline' });
-
-export const addDefUnderline = StateEffect.define<{ from: number; to: number }>(
-  {
-    map: ({ from, to }, change) => ({
-      from: change.mapPos(from),
-      to: change.mapPos(to),
-    }),
-  },
-);
-
-export const clearDefUnderline = StateEffect.define<null>();
 
 export const defUnderlineState = StateField.define<DecorationSet>({
   create() {
@@ -45,71 +46,71 @@ export const defUnderlineState = StateField.define<DecorationSet>({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-export function markHoverRangeAsUnderlined(view: EditorView) {
-  const hoverRange = getLatestHoverResult()?.range;
-  if (hoverRange) {
-    view.dispatch({
-      effects: addDefUnderline.of({
-        from: posToOffset(view.state.doc, hoverRange.start)!,
-        to: posToOffset(view.state.doc, hoverRange.end)!,
-      }),
-    });
-  }
-}
-
 const defUnderlineEvents = () =>
   EditorView.domEventHandlers({
     keydown(evt, view) {
-      const latestHoverResult = getLatestHoverResult();
       // console.log(
       //   ';;kdw ',
       //   evt.key,
       //   evt.metaKey,
       //   evt.ctrlKey,
-      //   latestHoverResult,
       // );
-      if (
-        latestHoverResult?.range &&
-        (evt.metaKey || evt.ctrlKey) &&
-        !evt.altKey &&
-        !evt.shiftKey
-      ) {
-        markHoverRangeAsUnderlined(view);
+
+      if ((evt.metaKey || evt.ctrlKey) && !evt.altKey && !evt.shiftKey) {
+        markRangeAsUnderlined(view);
+        setIsCmdOrCtrlPressed(true);
       }
+      // 不能使用setTimeout，否则鼠标移到空白处按ctrl还会高亮上个定义
+      // setTimeout(() => {
+      //   console.log(';;kdw-line ', evt.key);
+      // }, 100);`
     },
     keyup(evt, view) {
       // console.log(';;kup ', evt.key, evt.metaKey, evt.ctrlKey);
       view.dispatch({
         effects: clearDefUnderline.of(null),
       });
-      // clearHoverResult();
+      setIsCmdOrCtrlPressed(false);
     },
     mousemove(evt, view) {
-      const latestHoverResult = getLatestHoverResult();
-      if (!latestHoverResult?.range) {
-        view.dispatch({
-          effects: clearDefUnderline.of(null),
-        });
-        // clearHoverResult();
-        return;
-      }
+      const pos = view.posAtCoords({
+        x: evt.clientX,
+        y: evt.clientY,
+      });
+      setMousePosAtEditor(pos);
+
       if (evt.metaKey || evt.ctrlKey) {
         // console.log(';;mmv ', evt.metaKey, evt.ctrlKey, latestHoverResult);
-        // console.log(';;mmv ', getLastHoverResult()?.range);
-        markHoverRangeAsUnderlined(view);
+        markRangeAsUnderlined(view);
       }
     },
     blur(evt, view) {
-      // console.log(';;blur');
-      clearHoverResult();
+      // console.log(';; ms-blur ');
       view.dispatch({
         effects: clearDefUnderline.of(null),
       });
+      clearHoverResult();
+      setMousePosAtEditor(null);
+    },
+    mouseleave(event, view) {
+      // console.log(';; ms-leave ');
+      setMousePosAtEditor(null);
     },
   });
+
+const cleanupDefUnderline = ViewPlugin.fromClass(
+  class CleanupDefUnderline {
+    destroy() {
+      clearHoverResult();
+      setMousePosAtEditor(null);
+      setIsCmdOrCtrlPressed(false);
+    }
+  },
+);
 
 export const defUnderlinePlugin = () => [
   defUnderlineTheme,
   defUnderlineState,
   defUnderlineEvents(),
+  cleanupDefUnderline,
 ];

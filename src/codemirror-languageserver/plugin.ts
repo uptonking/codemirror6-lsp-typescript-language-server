@@ -32,6 +32,7 @@ import {
   clearHoverResult,
   eventsFromChangeSet,
   formatContents,
+  getIsCmdOrCtrlPressed,
   isEmptyDocumentation,
   offsetToPos,
   posToOffset,
@@ -39,6 +40,7 @@ import {
   prefixMatch,
   setLatestHoverResult,
   showErrorMessage,
+  markRangeAsUnderlined,
 } from './utils';
 
 const TIMEOUT = 10000;
@@ -482,6 +484,11 @@ export class LanguageServerPlugin implements PluginValue {
     if (isEmptyDocumentation(contents)) {
       return null;
     }
+
+      if (getIsCmdOrCtrlPressed()) {
+        markRangeAsUnderlined(view, result.range);
+      }
+
     const dom = document.createElement('div');
     dom.classList.add('documentation');
     if (this.allowHTMLContent) {
@@ -489,6 +496,7 @@ export class LanguageServerPlugin implements PluginValue {
     } else {
       dom.textContent = formatContents(contents);
     }
+
     return {
       pos,
       end,
@@ -1441,8 +1449,7 @@ export function languageServerWithClient(options: LanguageServerOptions) {
   };
   const lsClient = options.client;
   const featuresOptions: Required<FeatureOptions> = {
-    // Default to true
-    diagnosticsEnabled: false,
+    diagnosticsEnabled: true,
     hoverEnabled: true,
     completionEnabled: true,
     definitionEnabled: true,
@@ -1453,7 +1460,7 @@ export function languageServerWithClient(options: LanguageServerOptions) {
     // Override defaults with provided options
     ...options,
   };
-  // Create base extensions array
+
   const extensions: Extension[] = [
     ViewPlugin.define((view) => {
       plugin = new LanguageServerPlugin(
