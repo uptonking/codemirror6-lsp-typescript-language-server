@@ -11,7 +11,7 @@ export const commonConfig = {
           loader: 'builtin:swc-loader',
           options: {
             isModule: true,
-            sourceMap: true,
+            // sourceMap: true,
             jsc: {
               target: 'es2020',
               loose: false,
@@ -41,7 +41,7 @@ export const commonConfig = {
           loader: 'builtin:swc-loader',
           options: {
             isModule: true,
-            sourceMap: true,
+            // sourceMap: true,
             jsc: {
               target: 'es2020',
               loose: false,

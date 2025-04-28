@@ -5,7 +5,7 @@ import { merge } from 'webpack-merge';
 
 import { devServerConfig } from './rspack.server.mjs';
 
-const lspLang = ['ts', 'py', 'go'].includes(process.env['LANG'])
+const lspLang = ['ts', 'py', 'go', 'java'].includes(process.env['LANG'])
   ? process.env['LANG']
   : 'ts';
 
@@ -13,6 +13,7 @@ const entries = {
   ts: './src/app-ts.ts',
   py: './src/app-python-django-drf.ts',
   go: './src/app-go-gin.ts',
+  java: './src/app-java-spring-boot.ts',
 };
 
 /** @type {import('@rspack/cli').Configuration} */

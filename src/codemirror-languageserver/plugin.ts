@@ -102,6 +102,7 @@ type Notification = {
  */
 export class LanguageServerClient {
   public ready: boolean;
+  /** server capabilities */
   public capabilities: LSP.ServerCapabilities | null;
 
   public initializePromise: Promise<void>;
@@ -264,6 +265,7 @@ export class LanguageServerClient {
       this.getInitializationOptions(),
       this.timeout * 3,
     );
+    console.log(';; init-server-feats ', capabilities);
     this.capabilities = capabilities;
     this.notify('initialized', {});
     this.ready = true;
@@ -456,7 +458,8 @@ export class LanguageServerPlugin implements PluginValue {
       return null;
     }
 
-    if (!(this.client.ready && this.client.capabilities?.hoverProvider)) {
+    // if (!(this.client.ready && this.client.capabilities?.hoverProvider)) {
+    if (!this.client.ready) {
       return null;
     }
 
@@ -485,9 +488,9 @@ export class LanguageServerPlugin implements PluginValue {
       return null;
     }
 
-      if (getIsCmdOrCtrlPressed()) {
-        markRangeAsUnderlined(view, result.range);
-      }
+    if (getIsCmdOrCtrlPressed()) {
+      markRangeAsUnderlined(view, result.range);
+    }
 
     const dom = document.createElement('div');
     dom.classList.add('documentation');
@@ -582,8 +585,14 @@ export class LanguageServerPlugin implements PluginValue {
     if (!this.featureOptions.definitionEnabled) {
       return;
     }
+    console.log(
+      ';; ws-def ',
+      this.client.ready,
+      this.client.capabilities?.definitionProvider,
+    );
 
-    if (!(this.client.ready && this.client.capabilities?.definitionProvider)) {
+    // if (!(this.client.ready && this.client.capabilities?.definitionProvider)) {
+    if (!this.client.ready) {
       return;
     }
 
@@ -1449,7 +1458,7 @@ export function languageServerWithClient(options: LanguageServerOptions) {
   };
   const lsClient = options.client;
   const featuresOptions: Required<FeatureOptions> = {
-    diagnosticsEnabled: true,
+    diagnosticsEnabled: false,
     hoverEnabled: true,
     completionEnabled: true,
     definitionEnabled: true,
@@ -1639,11 +1648,24 @@ export function languageServerWithClient(options: LanguageServerOptions) {
           shortcuts.goToDefinition === 'ctrlcmd' &&
           (event.ctrlKey || event.metaKey)
         ) {
+          // console.log(
+          //   ';; clk ',
+          //   Boolean(
+          //     shortcuts.goToDefinition === 'ctrlcmd' &&
+          //       (event.ctrlKey || event.metaKey),
+          //   ),
+          // );
           const pos = view.posAtCoords({
             x: event.clientX,
             y: event.clientY,
           });
-          // console.log(';; onGoToDef ', pos, event);
+          // console.log(
+          //   ';; onGoToDef ',
+          //   Boolean(pos && plugin),
+          //   pos,
+          //   offsetToPos(view.state.doc, pos!),
+          //   event,
+          // );
           if (pos && plugin) {
             plugin
               .requestDefinition(view, offsetToPos(view.state.doc, pos))

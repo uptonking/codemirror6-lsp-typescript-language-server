@@ -13,6 +13,7 @@
   - typescript lsp with typescript-language-server
   - python lsp with pyright
   - go lsp with gopls
+  - java lsp with eclipse jdtls
 
 ## quickstart
 
@@ -22,14 +23,17 @@ npm i
 # start all language servers
 npm run serve:langs
 
-# view ts lsp example
+# view ts/js lsp example
 npm run demo
 
-# view py lsp example
+# view python lsp example
 npm run demo:py
 
 # view go lsp example
 npm run demo:go
+
+# view java lsp example
+npm run demo:java
 ```
 
 - view the example at http://localhost:8999/

@@ -1,5 +1,9 @@
 # codemirror lsp dev xp
 
+## questions
+
+- why does java language server not work when using port other than 4000?
+
 ## go to definition
 
 ```JS

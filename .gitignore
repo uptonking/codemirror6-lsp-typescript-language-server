@@ -33,6 +33,14 @@ repos-caches/
 .factorypath
 .DS_Store
 
+.gradle
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+
 # below Created by https://www.gitignore.io/api/node
 
 ### Node ###

@@ -9,3 +9,5 @@ langservers:
     - '--stdio'
   go:
     - 'gopls'
+  # java:
+  #   - 'java -Declipse.application=org.eclipse.jdt.ls.core.id1 -Dosgi.bundles.defaultStartLevel=4 -Declipse.product=org.eclipse.jdt.ls.core.product -Dlog.level=ALL -noverify  -Xmx1G --add-modules=ALL-SYSTEM --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED -jar  /Users/yaoo/Documents/active/opt/env/jdt-language-server-1.46.1-202504011455/plugins/org.eclipse.equinox.launcher_1.7.0.v20250331-1702.jar -configuration /Users/yaoo/Documents/active/opt/env/jdt-language-server-1.46.1-202504011455/config_mac -data /Users/yaoo/Documents/active/opt/env/jdtls-data'
