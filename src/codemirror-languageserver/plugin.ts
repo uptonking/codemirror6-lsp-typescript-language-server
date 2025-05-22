@@ -41,6 +41,7 @@ import {
   setLatestHoverResult,
   showErrorMessage,
   markRangeAsUnderlined,
+  setIsCmdOrCtrlPressed,
 } from './utils';
 
 const TIMEOUT = 10000;
@@ -166,22 +167,25 @@ export class LanguageServerClient {
     this.initializePromise = this.initialize();
   }
 
+  /** LSP client initialization with capabilities
+   * - if `dynamicRegistration` set to true, server will send `client/registerCapability` after initialization
+   */
   protected getInitializationOptions(): LSP.InitializeParams['initializationOptions'] {
     const defaultClientCapabilities: LSP.ClientCapabilities = {
       textDocument: {
         hover: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           contentFormat: ['markdown', 'plaintext'],
         },
         moniker: {},
         synchronization: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           willSave: false,
           didSave: false,
           willSaveWaitUntil: false,
         },
         codeAction: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           codeActionLiteralSupport: {
             codeActionKind: {
               valueSet: [
@@ -201,7 +205,7 @@ export class LanguageServerClient {
           },
         },
         completion: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           completionItem: {
             snippetSupport: true,
             commitCharactersSupport: true,
@@ -212,37 +216,38 @@ export class LanguageServerClient {
           contextSupport: false,
         },
         signatureHelp: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           signatureInformation: {
             documentationFormat: ['markdown', 'plaintext'],
           },
         },
         declaration: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           linkSupport: true,
         },
         definition: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           linkSupport: true,
         },
         typeDefinition: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           linkSupport: true,
         },
         implementation: {
-          dynamicRegistration: true,
+          // dynamicRegistration: true,
           linkSupport: true,
         },
         rename: {
+          // renameProvider will be absent from initialization response
           dynamicRegistration: true,
           prepareSupport: true,
         },
       },
-      workspace: {
-        didChangeConfiguration: {
-          dynamicRegistration: true,
-        },
-      },
+      // workspace: {
+      //   didChangeConfiguration: {
+      //     dynamicRegistration: true,
+      //   },
+      // },
     };
     const defaultOptions = {
       capabilities: this.clientCapabilities
@@ -458,8 +463,7 @@ export class LanguageServerPlugin implements PluginValue {
       return null;
     }
 
-    // if (!(this.client.ready && this.client.capabilities?.hoverProvider)) {
-    if (!this.client.ready) {
+    if (!(this.client.ready && this.client.capabilities?.hoverProvider)) {
       return null;
     }
 
@@ -591,8 +595,7 @@ export class LanguageServerPlugin implements PluginValue {
       this.client.capabilities?.definitionProvider,
     );
 
-    // if (!(this.client.ready && this.client.capabilities?.definitionProvider)) {
-    if (!this.client.ready) {
+    if (!(this.client.ready && this.client.capabilities?.definitionProvider)) {
       return;
     }
 
@@ -1643,6 +1646,10 @@ export function languageServerWithClient(options: LanguageServerOptions) {
       click: (event, view) => {
         // Check if definition is enabled
         if (!featuresOptions.definitionEnabled) return;
+
+        if (!event.ctrlKey && !event.metaKey) {
+          setIsCmdOrCtrlPressed(false);
+        }
 
         if (
           shortcuts.goToDefinition === 'ctrlcmd' &&

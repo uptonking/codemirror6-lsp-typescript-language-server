@@ -9,6 +9,7 @@ import {
   addDefUnderline,
   clearDefUnderline,
   clearHoverResult,
+  isMacOS,
   markRangeAsUnderlined,
   setIsCmdOrCtrlPressed,
   setMousePosAtEditor,
@@ -56,7 +57,11 @@ const defUnderlineEvents = () =>
       //   evt.ctrlKey,
       // );
 
-      if ((evt.metaKey || evt.ctrlKey) && !evt.altKey && !evt.shiftKey) {
+      if (
+        ((isMacOS() && evt.metaKey) || (!isMacOS() && evt.ctrlKey)) &&
+        !evt.altKey &&
+        !evt.shiftKey
+      ) {
         markRangeAsUnderlined(view);
         setIsCmdOrCtrlPressed(true);
       }
@@ -79,7 +84,11 @@ const defUnderlineEvents = () =>
       });
       setMousePosAtEditor(pos);
 
-      if (evt.metaKey || evt.ctrlKey) {
+      if (
+        ((isMacOS() && evt.metaKey) || (!isMacOS() && evt.ctrlKey)) &&
+        !evt.altKey &&
+        !evt.shiftKey
+      ) {
         // console.log(';;mmv ', evt.metaKey, evt.ctrlKey, latestHoverResult);
         markRangeAsUnderlined(view);
       }

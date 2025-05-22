@@ -321,3 +321,10 @@ export function eventsFromChangeSet(
   });
   return events;
 }
+
+export function isMacOS() {
+  return (
+    typeof window !== 'undefined' &&
+    window.navigator.userAgent.includes('Mac OS')
+  );
+}
