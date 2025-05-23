@@ -6,12 +6,12 @@
 
 - autocomplete
 - hover info
-- go to definition
+- go to definition with `cmd/ctrl + click` , showing underlined text
 - wip: lint
 
 - 🌰 examples
   - typescript lsp with typescript-language-server
-  - python lsp with pyright
+  - python lsp with basedpyright
   - go lsp with gopls
   - java lsp with eclipse jdtls
 
@@ -20,7 +20,7 @@
 ```shell
 npm i
 
-# start all language servers
+# start all language servers, extra conf is required for jdtls
 npm run serve:langs
 
 # view ts/js lsp example

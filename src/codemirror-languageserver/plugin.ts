@@ -270,7 +270,7 @@ export class LanguageServerClient {
       this.getInitializationOptions(),
       this.timeout * 3,
     );
-    console.log(';; init-server-feats ', capabilities);
+    // console.log(';; init-server-feats ', capabilities);
     this.capabilities = capabilities;
     this.notify('initialized', {});
     this.ready = true;
@@ -473,17 +473,42 @@ export class LanguageServerPlugin implements PluginValue {
     });
     console.log(';; ws-hover-result ', result);
 
-    if (!result) {
+    if (!result || !result?.contents) {
       clearHoverResult();
       return null;
     }
-    setLatestHoverResult(result);
+
     const { contents, range } = result;
     let pos = posToOffset(view.state.doc, { line, character });
     let end: number | undefined;
     if (range) {
       pos = posToOffset(view.state.doc, range.start);
       end = posToOffset(view.state.doc, range.end);
+      setLatestHoverResult(result);
+    } else {
+      const textRangeAtHover = pos ? view.state.wordAt(pos) : null;
+      // console.log(
+      //   ';; ws-hover-no-range ',
+      //   pos,
+      //   textRangeAtHover
+      //     ? view.state.doc
+      //         .slice(textRangeAtHover.from, textRangeAtHover.to)
+      //         .toString()
+      //     : 'no hover textRange',
+      //   textRangeAtHover,
+      // );
+      if (textRangeAtHover) {
+        pos = textRangeAtHover.from;
+        end = textRangeAtHover.to;
+
+        setLatestHoverResult({
+          ...result,
+          range: {
+            start: offsetToPos(view.state.doc, textRangeAtHover.from),
+            end: offsetToPos(view.state.doc, textRangeAtHover.to),
+          },
+        });
+      }
     }
     if (pos == null) {
       return null;
