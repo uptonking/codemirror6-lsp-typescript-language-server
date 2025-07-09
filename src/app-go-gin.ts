@@ -1,3 +1,5 @@
+import './index.scss';
+
 import { go } from '@codemirror/lang-go';
 import { lintGutter } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';

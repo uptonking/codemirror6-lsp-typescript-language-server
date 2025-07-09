@@ -1,13 +1,22 @@
-code {
-  font-family: source-code-pro, Consolas, 'Courier New', monospace;
-}
+// code {
+//   font-family: source-code-pro, Consolas, 'Courier New', monospace;
+// }
 
 h1 {
   color: mediumseagreen;
   // color: coral;
 }
 
-.AppLogo{
+.AppLogo {
   width: 3rem;
   height: 3rem;
+}
+
+.cm-tooltip .hover-tip pre {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.cm-tooltip .documentation hr:first-of-type {
+  margin-top: 0px;
 }

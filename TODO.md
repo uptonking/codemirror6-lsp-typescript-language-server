@@ -9,12 +9,12 @@
 - [x] jump to definition in editor
 - [ ] hover markdown renderer
 
+- [ ] parse definition url with vscode-uri
+
 - [ ] support to import json
 
-- [ ] migrate lint to oxlint
 
-- [ ] fix jest testing setup
-- [ ] add unit tests with jest
+- [ ] add unit tests
 
 ## later
 

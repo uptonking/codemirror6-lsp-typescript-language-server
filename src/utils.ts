@@ -14,9 +14,9 @@ export function scrollToAndCenterAtPos(view: EditorView, pos = 0) {
       // y: 'end',
     }),
   );
-  console.log(';; docLen/targetSel ', docLen, pos);
+  // console.log(';; docLen/targetSel ', docLen, pos);
+  // view.state.doc;
 
-  view.state.doc;
   view.focus();
   view.dispatch({
     effects: effects,

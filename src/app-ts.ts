@@ -1,3 +1,5 @@
+import './index.scss';
+
 import { javascript } from '@codemirror/lang-javascript';
 import { lintGutter } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';

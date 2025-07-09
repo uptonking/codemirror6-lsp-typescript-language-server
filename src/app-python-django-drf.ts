@@ -1,3 +1,5 @@
+import './index.scss';
+
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';

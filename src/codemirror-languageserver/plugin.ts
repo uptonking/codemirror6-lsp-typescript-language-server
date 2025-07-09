@@ -42,6 +42,7 @@ import {
   showErrorMessage,
   markRangeAsUnderlined,
   setIsCmdOrCtrlPressed,
+  renderMarkdown,
 } from './utils';
 
 const TIMEOUT = 10000;
@@ -522,7 +523,11 @@ export class LanguageServerPlugin implements PluginValue {
     }
 
     const dom = document.createElement('div');
-    dom.classList.add('documentation');
+    dom.classList.add('documentation', 'hover-tip');
+    // dom.style.border = '1px solid #006870';
+    // dom.style.backgroundColor = 'beige';
+    // dom.style.paddingTop = '0px';
+    // dom.style.paddingBottom = '0px';
     if (this.allowHTMLContent) {
       dom.innerHTML = formatContents(contents);
     } else {
@@ -753,6 +758,11 @@ export class LanguageServerPlugin implements PluginValue {
           to: posToOffsetOrZero(this.view.state.doc, range.end),
           severity: severityMap[severity ?? DiagnosticSeverity.Error],
           message: message,
+          renderMessage: () => {
+            const dom = document.createElement('div');
+            dom.innerHTML = renderMarkdown(message);
+            return dom;
+          },
           source: this.languageId,
           actions: codemirrorActions,
         };
@@ -1486,7 +1496,7 @@ export function languageServerWithClient(options: LanguageServerOptions) {
   };
   const lsClient = options.client;
   const featuresOptions: Required<FeatureOptions> = {
-    diagnosticsEnabled: false,
+    diagnosticsEnabled: true,
     hoverEnabled: true,
     completionEnabled: true,
     definitionEnabled: true,

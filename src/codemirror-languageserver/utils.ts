@@ -1,7 +1,12 @@
+import 'highlight.js/styles/atom-one-light.css';
+// import 'highlight.js/styles/atom-one-dark.css';
+
 import type { Text } from '@codemirror/state';
 import { ChangeSet, StateEffect } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
-import { marked } from 'marked';
+import hljs from 'highlight.js';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
 import type * as LSP from 'vscode-languageserver-protocol';
 
 export const clearDefUnderline = StateEffect.define<null>();
@@ -114,6 +119,37 @@ export function offsetToPos(doc: Text, offset: number) {
   };
 }
 
+// Add hook to remove empty code fences
+// const renderer = new marked.Renderer();
+// const prevCode = renderer.code;
+// renderer.code = (code) => {
+//   if (!code.text.trim()) return '';
+//   return prevCode.call(renderer, code);
+// };
+
+const marked = new Marked(
+  markedHighlight({
+    emptyLangClass: 'hljs',
+    langPrefix: 'hljs language-',
+    highlight(code, lang, info) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    },
+  }),
+);
+
+/**
+ * Render markdown to HTML string
+ */
+export function renderMarkdown(markdown: string) {
+  return marked.parse(markdown, {
+    async: false,
+    gfm: true,
+    breaks: true,
+    // renderer: renderer,
+  });
+}
+
 export function formatContents(
   contents:
     | LSP.MarkupContent
@@ -127,12 +163,15 @@ export function formatContents(
   if (isLSPMarkupContent(contents)) {
     let value = contents.value;
     if (contents.kind === 'markdown') {
-      value = marked(value, { async: false });
+      value = renderMarkdown(value.trim());
     }
     return value;
   }
   if (Array.isArray(contents)) {
-    return contents.map((c) => `${formatContents(c)}\n\n`).join('');
+    return contents
+      .map((c) => formatContents(c))
+      .filter(Boolean)
+      .join('\n\n');
   }
   if (typeof contents === 'string') {
     return contents;

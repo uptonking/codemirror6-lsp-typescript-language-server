@@ -64,6 +64,13 @@ export const commonConfig = {
         ],
       },
       {
+        test: /\.css$/,
+        use: [
+          { loader: 'style-loader', options: { esModule: false } },
+          'css-loader',
+        ],
+      },
+      {
         test: /\.(jpg|jpeg|png|gif|svg|ico)$/,
         type: 'asset',
       },
