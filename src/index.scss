@@ -12,6 +12,13 @@ h1 {
   height: 3rem;
 }
 
+.cm-tooltip:has(.documentation) {
+  max-width: 50vw;
+  max-height: 20vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .cm-tooltip .hover-tip pre {
   margin-top: 0px;
   margin-bottom: 0px;
@@ -19,4 +26,21 @@ h1 {
 
 .cm-tooltip .documentation hr:first-of-type {
   margin-top: 0px;
+}
+
+.cm-tooltip .documentation pre {
+  white-space: pre-wrap;
+  // white-space: pre-line; // Spaces and tabs	is collapsed
+}
+
+.cm-tooltip .documentation pre code {
+  padding: 8px;
+}
+
+.cm-tooltip .documentation > p {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 13px;
 }
