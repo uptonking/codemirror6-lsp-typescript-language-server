@@ -514,6 +514,12 @@ export class LanguageServerPlugin implements PluginValue {
     if (pos == null) {
       return null;
     }
+
+    // console.log(
+    //   ';; hover-cnt-empty ',
+    //   this.allowHTMLContent,
+    //   isEmptyDocumentation(contents),
+    // );
     if (isEmptyDocumentation(contents)) {
       return null;
     }

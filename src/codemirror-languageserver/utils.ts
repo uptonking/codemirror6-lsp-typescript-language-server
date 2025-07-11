@@ -5,9 +5,48 @@ import type { Text } from '@codemirror/state';
 import { ChangeSet, StateEffect } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import hljs from 'highlight.js';
-import { Marked } from 'marked';
+import { Marked, type Tokens } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import type * as LSP from 'vscode-languageserver-protocol';
+
+// Add hook to remove empty code fences
+// const renderer = new marked.Renderer();
+// const prevCode = renderer.code;
+// renderer.code = (code) => {
+//   if (!code.text.trim()) return '';
+//   return prevCode.call(renderer, code);
+// };
+
+const marked = new Marked(
+  markedHighlight({
+    emptyLangClass: 'hljs',
+    langPrefix: 'hljs language-',
+    highlight(code, lang, info) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    },
+  }),
+);
+
+const renderer = {
+  link({ href, title, text }: Tokens.Link): string {
+    const isLocalLink = href.startsWith(
+      `${location.protocol}//${location.hostname}`,
+    );
+
+    if (title === null) {
+      return isLocalLink
+        ? `<a href="${href}">${text}</a>`
+        : `<a target="_blank" rel="noreferrer noopener" href="${href}">${text}</a>`;
+    }
+
+    return isLocalLink
+      ? `<a href="${href}" title="${title}">${text}</a>`
+      : `<a target="_blank" rel="noreferrer noopener" href="${href}" title="${title}">${text}</a>`;
+  },
+};
+
+marked.use({ renderer });
 
 export const clearDefUnderline = StateEffect.define<null>();
 
@@ -119,25 +158,6 @@ export function offsetToPos(doc: Text, offset: number) {
   };
 }
 
-// Add hook to remove empty code fences
-// const renderer = new marked.Renderer();
-// const prevCode = renderer.code;
-// renderer.code = (code) => {
-//   if (!code.text.trim()) return '';
-//   return prevCode.call(renderer, code);
-// };
-
-const marked = new Marked(
-  markedHighlight({
-    emptyLangClass: 'hljs',
-    langPrefix: 'hljs language-',
-    highlight(code, lang, info) {
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
-    },
-  }),
-);
-
 /**
  * Render markdown to HTML string
  */
@@ -173,8 +193,17 @@ export function formatContents(
       .filter(Boolean)
       .join('\n\n');
   }
+
+  if (isLSPMarkedStringWithLang(contents)) {
+    let content = contents.value || '';
+    if (contents.language === 'java') {
+      content = renderMarkdown(`\`\`\`java\n${content}\n\`\`\`\n\n`);
+    }
+    return content;
+  }
+
   if (typeof contents === 'string') {
-    return contents;
+    return renderMarkdown(contents.trim());
   }
   return '';
 }
@@ -251,6 +280,12 @@ export function isLSPMarkupContent(
   contents: LSP.MarkupContent | LSP.MarkedString | LSP.MarkedString[],
 ): contents is LSP.MarkupContent {
   return (contents as LSP.MarkupContent).kind !== undefined;
+}
+
+export function isLSPMarkedStringWithLang(
+  contents: LSP.MarkupContent | LSP.MarkedString | LSP.MarkedString[],
+): contents is Exclude<LSP.MarkedString, string> {
+  return typeof contents === 'object' && contents && 'language' in contents;
 }
 
 export function showErrorMessage(view: EditorView, message: string) {

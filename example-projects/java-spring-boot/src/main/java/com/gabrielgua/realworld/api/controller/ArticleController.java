@@ -46,6 +46,7 @@ public class ArticleController {
 
         Pageable pageable = PageRequest.of(offset, limit, DEFAULT_FILTER_SORT);
         var articles = articleService.listAll(filter, pageable).getContent();
+        System.out.println(";; TagController.list()");
 
         if (authUtils.isAuthenticated()) {
             var profile = userService.getCurrentUser().getProfile();
